@@ -251,7 +251,7 @@ export class PromptFormComponent implements OnInit {
 
     if (this.selectedFile) {
       this.promptService.uploadImage(this.selectedFile).subscribe({
-        next: response => this.saveOrUpdatePrompt(response.url),
+        next: response => this.saveOrUpdatePrompt(response.url, response.url),
         error: error => {
           console.error('Upload failed', error);
           this.toastService.show('อัปโหลดรูปล้มเหลว (UPLOAD_FAILED)', 'error');
@@ -263,7 +263,11 @@ export class PromptFormComponent implements OnInit {
     }
   }
 
-  private saveOrUpdatePrompt(imageUrl?: string): void {
+  /**
+   * @param freshUploadUrl set only when this save follows a new upload, so the file can be
+   *        cleaned up if the save fails and nothing ends up referencing it.
+   */
+  private saveOrUpdatePrompt(imageUrl?: string, freshUploadUrl?: string): void {
     const value = this.promptForm.getRawValue();
 
     const promptData: Prompt = {
@@ -294,6 +298,12 @@ export class PromptFormComponent implements OnInit {
         console.error('Save failed', error);
         this.toastService.show(failureMessage, 'error');
         this.isSubmitting.set(false);
+
+        if (freshUploadUrl) {
+          this.promptService.discardUpload(freshUploadUrl).subscribe({
+            error: cleanupError => console.warn('Could not discard orphaned upload', cleanupError),
+          });
+        }
       },
     });
   }

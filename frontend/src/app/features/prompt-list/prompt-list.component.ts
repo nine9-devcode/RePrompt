@@ -67,6 +67,7 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
   private observer: IntersectionObserver | null = null;
+  private sentinelVisible = false;
 
   ngOnInit(): void {
     this.fetchData();
@@ -81,10 +82,8 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.observer = new IntersectionObserver(
       entries => {
-        const visible = entries.some(entry => entry.isIntersecting);
-        if (visible && !this.isLoadingMore() && !this.loading() && this.prompts().length < this.totalFound()) {
-          this.loadMore();
-        }
+        this.sentinelVisible = entries.some(entry => entry.isIntersecting);
+        this.loadMoreIfSentinelVisible();
       },
       { root: null, rootMargin: '200px', threshold: 0.1 }
     );
@@ -166,6 +165,8 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
             this.totalFound.update(total => Math.max(0, total - 1));
             if (this.selectedPrompt()?.id === id) this.closeModal();
             this.toastService.show('ลบข้อมูลสำเร็จ (RESOURCE_PURGED)', 'success');
+            // The list just got shorter, which may have pulled the sentinel into view.
+            this.loadMoreIfSentinelVisible();
           },
           error: error => {
             console.error('Purge failed', error);
@@ -204,7 +205,15 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  private loadMore(): void {
+  /**
+   * IntersectionObserver only reports transitions. Once the sentinel is on screen and
+   * stays there — a short page, or a delete that shrinks the list — no further callback
+   * arrives, so loading has to be re-checked after every list change.
+   */
+  private loadMoreIfSentinelVisible(): void {
+    if (!this.sentinelVisible || this.loading() || this.isLoadingMore()) return;
+    if (this.prompts().length >= this.totalFound()) return;
+
     // Using the loaded count as the offset keeps paging correct after a delete, which
     // a separately tracked offset did not.
     this.fetchData(true);
@@ -232,6 +241,8 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
           this.totalFound.set(response.totalCount);
           this.loading.set(false);
           this.isLoadingMore.set(false);
+          // A short first page can leave the sentinel on screen with nothing to re-trigger it.
+          this.loadMoreIfSentinelVisible();
         },
         error: error => {
           console.error('Error loading prompts:', error);

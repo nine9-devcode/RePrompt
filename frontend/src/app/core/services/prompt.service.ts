@@ -61,6 +61,15 @@ export class PromptService {
     return this.http.post<{ url: string }>(`${this.apiUrl}/upload`, formData);
   }
 
+  /**
+   * Discards an upload that never got attached to a prompt. The API refuses to delete a
+   * file that a saved prompt references, so this is safe to call on any failed save.
+   */
+  discardUpload(imageUrl: string): Observable<void> {
+    const fileName = imageUrl.split('/').pop() ?? '';
+    return this.http.delete<void>(`${this.apiUrl}/uploads/${encodeURIComponent(fileName)}`);
+  }
+
   getSuggestions(): Observable<Suggestions> {
     return this.http.get<Suggestions>(`${this.apiUrl}/suggestions`);
   }
