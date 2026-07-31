@@ -37,7 +37,7 @@ export class PromptDetailModalComponent implements AfterViewInit, OnDestroy {
 
   readonly closed = output<void>();
   readonly reveal = output<void>();
-  readonly copy = output<{ text: string; message: string }>();
+  readonly copyText = output<{ text: string; message: string }>();
 
   protected readonly zoomScale = signal(1);
   protected readonly panX = signal(0);
@@ -69,7 +69,8 @@ export class PromptDetailModalComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly transform = computed(
-    () => `scale(${this.zoomScale()}) translate(${this.panX() / this.zoomScale()}px, ${this.panY() / this.zoomScale()}px)`
+    () =>
+      `scale(${this.zoomScale()}) translate(${this.panX() / this.zoomScale()}px, ${this.panY() / this.zoomScale()}px)`
   );
 
   ngAfterViewInit(): void {
@@ -86,6 +87,10 @@ export class PromptDetailModalComponent implements AfterViewInit, OnDestroy {
   @HostListener('document:keydown.escape')
   protected onEscape(): void {
     this.closed.emit();
+  }
+
+  protected onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closed.emit();
   }
 
   protected resetZoom(): void {

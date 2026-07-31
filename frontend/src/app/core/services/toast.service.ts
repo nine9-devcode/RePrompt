@@ -7,7 +7,7 @@ export interface Toast {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ToastService {
   toasts = signal<Toast[]>([]);
@@ -16,7 +16,7 @@ export class ToastService {
   show(message: string, type: 'success' | 'error' | 'info' = 'success'): void {
     const id = this.nextId++;
     const newToast: Toast = { id, message, type };
-    
+
     this.toasts.update(current => [...current, newToast]);
 
     // Auto-remove after 3 seconds

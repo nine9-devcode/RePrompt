@@ -36,4 +36,8 @@ export class ConfirmDialogComponent implements AfterViewInit {
   onEscape(): void {
     this.cancelled.emit();
   }
+
+  protected onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.cancelled.emit();
+  }
 }

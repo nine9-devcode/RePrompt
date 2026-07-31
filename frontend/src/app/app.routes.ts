@@ -5,15 +5,18 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/prompt-list/prompt-list.component').then(m => m.PromptListComponent),
+    loadComponent: () =>
+      import('./features/prompt-list/prompt-list.component').then(m => m.PromptListComponent),
   },
   {
     path: 'new',
-    loadComponent: () => import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
+    loadComponent: () =>
+      import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
   },
   {
     path: 'edit/:id',
-    loadComponent: () => import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
+    loadComponent: () =>
+      import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
   },
   {
     path: 'settings',

@@ -15,7 +15,7 @@ export interface PromptQuery {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PromptService {
   private readonly http = inject(HttpClient);
@@ -27,9 +27,7 @@ export class PromptService {
   }
 
   getPrompts(query: PromptQuery = {}): Observable<PaginatedResponse<Prompt>> {
-    let params = new HttpParams()
-      .set('limit', query.limit ?? 20)
-      .set('offset', query.offset ?? 0);
+    let params = new HttpParams().set('limit', query.limit ?? 20).set('offset', query.offset ?? 0);
 
     if (query.search) params = params.set('search', query.search);
     if (query.category) params = params.set('category', query.category);

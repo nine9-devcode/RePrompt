@@ -10,7 +10,9 @@
 
 /* Custom Monospace for Code Blocks */
 .font-mono {
-  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 
 .code-bg {
@@ -42,7 +44,15 @@
   scrollbar-color: #30363d #0d1117;
 }
 
-.syntax-string { @apply text-[#7EE787]; }
-.syntax-keyword { @apply text-[#FF7B72]; }
-.syntax-constant { @apply text-[#79C0FF]; }
-.syntax-comment { @apply text-[#8B949E]; }
+.syntax-string {
+  @apply text-[#7EE787];
+}
+.syntax-keyword {
+  @apply text-[#FF7B72];
+}
+.syntax-constant {
+  @apply text-[#79C0FF];
+}
+.syntax-comment {
+  @apply text-[#8B949E];
+}

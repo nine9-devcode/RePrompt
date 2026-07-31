@@ -8,7 +8,7 @@ import { ToastComponent } from './shared/toast/toast.component';
   standalone: true,
   imports: [RouterOutlet, RouterModule, CommonModule, ToastComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'RePrompt';

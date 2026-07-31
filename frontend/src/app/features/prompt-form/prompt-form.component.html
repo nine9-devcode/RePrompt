@@ -1,18 +1,31 @@
 <div class="max-w-4xl mx-auto p-6 font-mono text-[#C9D1D9]">
   @if (isDragging()) {
-    <div class="fixed inset-0 z-[100] bg-[#0D1117]/60 backdrop-blur-[2px] border-4 border-dashed border-blue-500/40
-                flex flex-col items-center justify-center p-12 pointer-events-none">
+    <div
+      class="fixed inset-0 z-[100] bg-[#0D1117]/60 backdrop-blur-[2px] border-4 border-dashed border-blue-500/40 flex flex-col items-center justify-center p-12 pointer-events-none"
+    >
       <div class="bg-[#161B22] border border-[#30363D] rounded-2xl p-12 shadow-2xl flex flex-col items-center gap-6">
         <div class="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-               stroke="currentColor" class="w-12 h-12" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-12 h-12"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+            />
           </svg>
         </div>
         <div class="text-center space-y-2">
           <h2 class="text-2xl font-bold text-[#F0F6FC] uppercase tracking-widest">วางรูปภาพที่นี่ (DROP_IMAGE_HERE)</h2>
-          <p class="text-[#8B949E] text-sm font-mono tracking-tighter">// ระบบจะประมวลผลและดึงข้อมูลให้ทันที (Automatic metadata extraction enabled)</p>
+          <p class="text-[#8B949E] text-sm font-mono tracking-tighter">
+            // ระบบจะประมวลผลและดึงข้อมูลให้ทันที (Automatic metadata extraction enabled)
+          </p>
         </div>
       </div>
     </div>
@@ -21,19 +34,29 @@
   <div class="mb-8 border-b border-[#30363D] pb-6 flex items-center justify-between">
     <div>
       <h1 class="text-xl font-bold text-[#F0F6FC] tracking-tight flex items-center gap-2">
-        <span class="text-blue-500">{{ isEditMode() ? 'แก้ไขข้อมูล (Edit)' : 'สร้างใหม่ (New)' }}</span>_SOURCE_FILE.ts
+        <span class="text-blue-500">{{ isEditMode() ? 'แก้ไขข้อมูล (Edit)' : 'สร้างใหม่ (New)' }}</span
+        >_SOURCE_FILE.ts
       </h1>
       <p class="text-[#8B949E] text-xs mt-1">
-        // {{ isEditMode() ? 'อัปเดตข้อมูลพรอมต์เดิม (Update existing prompt)' : 'เริ่มต้นสร้างอ็อบเจกต์พรอมต์ใหม่พร้อมข้อมูลเสริม (Initialize a new prompt)' }}
+        //
+        {{
+          isEditMode()
+            ? 'อัปเดตข้อมูลพรอมต์เดิม (Update existing prompt)'
+            : 'เริ่มต้นสร้างอ็อบเจกต์พรอมต์ใหม่พร้อมข้อมูลเสริม (Initialize a new prompt)'
+        }}
       </p>
     </div>
-    <a routerLink="/" class="text-xs text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest">[ ยกเลิก (Abort) ]</a>
+    <a routerLink="/" class="text-xs text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest"
+      >[ ยกเลิก (Abort) ]</a
+    >
   </div>
 
   <form [formGroup]="promptForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2 space-y-6">
       <div class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
-        <div class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] flex items-center gap-2 text-[10px] text-[#8B949E] font-bold">
+        <div
+          class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] flex items-center gap-2 text-[10px] text-[#8B949E] font-bold"
+        >
           <span class="text-green-500">ข้อมูล (JSON)</span> ฟิลด์ที่แก้ไขได้ (EDITABLE_FIELDS)
         </div>
 
@@ -43,25 +66,33 @@
               <label for="field-title" class="flex items-center gap-2 text-[11px] font-bold">
                 <span class="text-purple-400">const</span> <span class="text-blue-400">ชื่อหัวข้อ (title)</span> =
               </label>
-              <input id="field-title" type="text" formControlName="title"
-                     placeholder="'ชื่อพรอมต์...'"
-                     class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#7EE787] text-sm
-                            focus:border-blue-500 focus-visible:outline-none transition-all">
+              <input
+                id="field-title"
+                type="text"
+                formControlName="title"
+                placeholder="'ชื่อพรอมต์...'"
+                class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#7EE787] text-sm focus:border-blue-500 focus-visible:outline-none transition-all"
+              />
             </div>
             <div class="space-y-2">
               <label for="field-category" class="flex items-center gap-2 text-[11px] font-bold">
                 <span class="text-purple-400">const</span> <span class="text-blue-400">หมวดหมู่ (category)</span> =
               </label>
-              <input id="field-category" type="text" formControlName="category"
-                     placeholder="'ทั่วไป (General)'"
-                     class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm
-                            focus:border-blue-500 focus-visible:outline-none transition-all">
+              <input
+                id="field-category"
+                type="text"
+                formControlName="category"
+                placeholder="'ทั่วไป (General)'"
+                class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm focus:border-blue-500 focus-visible:outline-none transition-all"
+              />
 
               <div class="flex flex-wrap gap-1.5 mt-2">
                 @for (option of suggestions().categories; track option) {
-                  <button type="button" (click)="selectOption('category', option)"
-                          class="px-2 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E]
-                                 hover:border-blue-500 hover:text-blue-400 transition-all">
+                  <button
+                    type="button"
+                    (click)="selectOption('category', option)"
+                    class="px-2 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all"
+                  >
                     {{ option }}
                   </button>
                 }
@@ -73,10 +104,13 @@
             <label for="field-positive" class="flex items-center gap-2 text-[11px] font-bold">
               <span class="text-purple-400">const</span> <span class="text-blue-400">พรอมต์หลัก (positive_prompt)</span> = `
             </label>
-            <textarea id="field-positive" formControlName="positivePrompt" rows="5"
-                      placeholder="รายละเอียดภาพที่ต้องการ (Masterpiece, ultra detailed...)"
-                      class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm
-                             focus:border-blue-500 focus-visible:outline-none transition-all resize-y"></textarea>
+            <textarea
+              id="field-positive"
+              formControlName="positivePrompt"
+              rows="5"
+              placeholder="รายละเอียดภาพที่ต้องการ (Masterpiece, ultra detailed...)"
+              class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm focus:border-blue-500 focus-visible:outline-none transition-all resize-y"
+            ></textarea>
             <div class="text-[11px] font-bold text-[#8B949E]">`;</div>
           </div>
 
@@ -84,10 +118,13 @@
             <label for="field-negative" class="flex items-center gap-2 text-[11px] font-bold">
               <span class="text-purple-400">const</span> <span class="text-blue-400">พรอมต์เชิงลบ (negative_prompt)</span> = `
             </label>
-            <textarea id="field-negative" formControlName="negativePrompt" rows="3"
-                      placeholder="สิ่งที่ไม่ต้องการในภาพ (Low quality, blurry...)"
-                      class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#FF7B72] text-sm
-                             focus:border-blue-500 focus-visible:outline-none transition-all resize-y"></textarea>
+            <textarea
+              id="field-negative"
+              formControlName="negativePrompt"
+              rows="3"
+              placeholder="สิ่งที่ไม่ต้องการในภาพ (Low quality, blurry...)"
+              class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#FF7B72] text-sm focus:border-blue-500 focus-visible:outline-none transition-all resize-y"
+            ></textarea>
             <div class="text-[11px] font-bold text-[#8B949E]">`;</div>
           </div>
         </div>
@@ -100,14 +137,19 @@
         <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div class="space-y-1.5">
             <label for="field-model" class="block text-[10px] text-[#8B949E] font-bold">ชื่อโมเดล (modelName)</label>
-            <input id="field-model" type="text" formControlName="modelName"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-model"
+              type="text"
+              formControlName="modelName"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs focus:border-blue-500 focus-visible:outline-none"
+            />
             <div class="flex flex-wrap gap-1 mt-1.5">
               @for (option of suggestions().models; track option) {
-                <button type="button" (click)="selectOption('modelName', option)"
-                        class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E]
-                               hover:border-blue-500 hover:text-blue-400 transition-all">
+                <button
+                  type="button"
+                  (click)="selectOption('modelName', option)"
+                  class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all"
+                >
                   {{ option }}
                 </button>
               }
@@ -116,14 +158,19 @@
 
           <div class="space-y-1.5">
             <label for="field-sampler" class="block text-[10px] text-[#8B949E] font-bold">ตัวอย่าง (sampler)</label>
-            <input id="field-sampler" type="text" formControlName="sampler"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-sampler"
+              type="text"
+              formControlName="sampler"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs focus:border-blue-500 focus-visible:outline-none"
+            />
             <div class="flex flex-wrap gap-1 mt-1.5">
               @for (option of suggestions().samplers; track option) {
-                <button type="button" (click)="selectOption('sampler', option)"
-                        class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E]
-                               hover:border-blue-500 hover:text-blue-400 transition-all">
+                <button
+                  type="button"
+                  (click)="selectOption('sampler', option)"
+                  class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all"
+                >
                   {{ option }}
                 </button>
               }
@@ -132,48 +179,72 @@
 
           <div class="space-y-1.5">
             <label for="field-steps" class="block text-[10px] text-[#8B949E] font-bold">จำนวนก้าว (steps)</label>
-            <input id="field-steps" type="number" min="1" max="1000" formControlName="steps"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-steps"
+              type="number"
+              min="1"
+              max="1000"
+              formControlName="steps"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 focus-visible:outline-none"
+            />
           </div>
 
           <div class="space-y-1.5">
             <label for="field-cfg" class="block text-[10px] text-[#8B949E] font-bold">มาตราส่วน (cfgScale)</label>
-            <input id="field-cfg" type="number" step="0.5" min="0" max="100" formControlName="cfgScale"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-cfg"
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              formControlName="cfgScale"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 focus-visible:outline-none"
+            />
           </div>
 
           <div class="space-y-1.5">
             <label for="field-seed" class="block text-[10px] text-[#8B949E] font-bold">เมล็ด (seed)</label>
-            <input id="field-seed" type="text" formControlName="seed"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-seed"
+              type="text"
+              formControlName="seed"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 focus-visible:outline-none"
+            />
           </div>
 
           <div class="space-y-1.5">
             <label for="field-created" class="block text-[10px] text-[#8B949E] font-bold">วันที่สร้าง (created_at)</label>
-            <input id="field-created" type="datetime-local" formControlName="createdAt"
-                   class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-[#8B949E] text-[11px]
-                          focus:border-blue-500 focus-visible:outline-none">
+            <input
+              id="field-created"
+              type="datetime-local"
+              formControlName="createdAt"
+              class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-[#8B949E] text-[11px] focus:border-blue-500 focus-visible:outline-none"
+            />
           </div>
 
           <div class="space-y-1.5 flex flex-col justify-end pb-1">
             <label class="relative flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" formControlName="isNsfw" class="sr-only peer">
+              <input type="checkbox" formControlName="isNsfw" class="sr-only peer" />
               <!-- The knob is an ::after on the track, so it stays a sibling of the input;
                    as a nested child, peer-checked: would never have matched. -->
-              <span class="w-10 h-5 bg-[#0D1117] border border-[#30363D] rounded-full relative shrink-0 transition-all
-                           peer-checked:bg-red-500/20 peer-checked:border-red-500/50
-                           peer-focus-visible:ring-2 peer-focus-visible:ring-red-500
-                           after:content-[''] after:absolute after:top-1 after:left-1 after:w-3 after:h-3
-                           after:bg-[#30363D] after:rounded-full after:transition-all
-                           peer-checked:after:bg-red-500 peer-checked:after:translate-x-5"></span>
+              <span
+                class="w-10 h-5 bg-[#0D1117] border border-[#30363D] rounded-full relative shrink-0 transition-all peer-checked:bg-red-500/20 peer-checked:border-red-500/50 peer-focus-visible:ring-2 peer-focus-visible:ring-red-500 after:content-[''] after:absolute after:top-1 after:left-1 after:w-3 after:h-3 after:bg-[#30363D] after:rounded-full after:transition-all peer-checked:after:bg-red-500 peer-checked:after:translate-x-5"
+              ></span>
               <span class="text-[10px] font-bold uppercase flex items-center gap-1.5 text-[#8B949E] peer-checked:text-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                     stroke="currentColor" class="w-3.5 h-3.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  class="w-3.5 h-3.5"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                  />
                 </svg>
                 NSFW (18+)
               </span>
@@ -185,18 +256,28 @@
 
     <div class="space-y-6">
       <div class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden p-6 shadow-xl">
-        <div class="text-[10px] text-[#8B949E] font-bold mb-4 uppercase tracking-widest">&gt;&gt; ตัวจัดการรูปภาพ (IMAGE_BUFFER)</div>
+        <div class="text-[10px] text-[#8B949E] font-bold mb-4 uppercase tracking-widest">
+          &gt;&gt; ตัวจัดการรูปภาพ (IMAGE_BUFFER)
+        </div>
 
-        <div class="relative h-64 bg-[#0D1117] rounded-md border-2 border-dashed border-[#30363D] flex flex-col
-                    items-center justify-center group overflow-hidden transition-all hover:border-blue-500/50
-                    focus-within:border-blue-500">
+        <div
+          class="relative h-64 bg-[#0D1117] rounded-md border-2 border-dashed border-[#30363D] flex flex-col items-center justify-center group overflow-hidden transition-all hover:border-blue-500/50 focus-within:border-blue-500"
+        >
           <label for="field-image" class="sr-only">เลือกไฟล์รูปภาพ (choose an image file)</label>
-          <input id="field-image" type="file" (change)="onFileSelected($event)" accept="image/*"
-                 class="absolute inset-0 opacity-0 cursor-pointer z-10">
+          <input
+            id="field-image"
+            type="file"
+            (change)="onFileSelected($event)"
+            accept="image/*"
+            class="absolute inset-0 opacity-0 cursor-pointer z-10"
+          />
 
           @if (imagePreview(); as preview) {
-            <img [src]="preview" alt="ตัวอย่างรูปที่เลือก (selected image preview)"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img
+              [src]="preview"
+              alt="ตัวอย่างรูปที่เลือก (selected image preview)"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
           } @else {
             <div class="text-center p-4">
               <p class="text-[10px] text-[#8B949E] mb-2 uppercase tracking-widest">ลากและวางรูปภาพที่นี่ (DRAG_AND_DROP)</p>
@@ -223,10 +304,18 @@
         }
       </div>
 
-      <button type="submit" [disabled]="promptForm.invalid || isSubmitting()"
-              class="w-full py-4 bg-[#238636] hover:bg-[#2EA043] text-white rounded-md font-bold text-sm shadow-sm
-                     transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-        {{ isSubmitting() ? 'กำลังทำงาน (EXECUTING...)' : (isEditMode() ? 'บันทึกการแก้ไข (SAVE_CHANGES)' : 'บันทึกข้อมูล (COMMIT_CHANGES)') }}
+      <button
+        type="submit"
+        [disabled]="promptForm.invalid || isSubmitting()"
+        class="w-full py-4 bg-[#238636] hover:bg-[#2EA043] text-white rounded-md font-bold text-sm shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        {{
+          isSubmitting()
+            ? 'กำลังทำงาน (EXECUTING...)'
+            : isEditMode()
+              ? 'บันทึกการแก้ไข (SAVE_CHANGES)'
+              : 'บันทึกข้อมูล (COMMIT_CHANGES)'
+        }}
       </button>
     </div>
   </form>

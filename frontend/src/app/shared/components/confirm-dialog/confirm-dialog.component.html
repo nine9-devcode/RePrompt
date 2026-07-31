@@ -1,12 +1,17 @@
-<div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-     (click)="cancelled.emit()">
-  <div role="alertdialog"
-       aria-modal="true"
-       [attr.aria-labelledby]="'confirm-title'"
-       [attr.aria-describedby]="'confirm-message'"
-       (click)="$event.stopPropagation()"
-       class="max-w-md w-full bg-[#161B22] border border-[#30363D] rounded-lg shadow-2xl overflow-hidden">
-
+<!-- Backdrop click is a mouse shortcut only; Escape is the keyboard path, handled on the
+     component. -->
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+<div
+  class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+  (click)="onBackdropClick($event)"
+>
+  <div
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="confirm-title"
+    aria-describedby="confirm-message"
+    class="max-w-md w-full bg-[#161B22] border border-[#30363D] rounded-lg shadow-2xl overflow-hidden"
+  >
     <div class="bg-[#0D1117] px-4 py-3 border-b border-[#30363D] flex items-center gap-2">
       <div class="w-3 h-3 rounded-full bg-[#FFBD2E]" aria-hidden="true"></div>
       <span id="confirm-title" class="text-xs font-mono text-[#8B949E] uppercase tracking-widest">{{ title() }}</span>
@@ -15,10 +20,20 @@
     <div class="p-6 space-y-6">
       <div class="flex items-start gap-4">
         <div class="p-3 rounded-full bg-red-500/10 text-red-500 shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-               stroke="currentColor" class="w-6 h-6" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-6 h-6"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
           </svg>
         </div>
         <div>
@@ -28,12 +43,19 @@
       </div>
 
       <div class="flex justify-end gap-3 pt-4">
-        <button type="button" (click)="cancelled.emit()"
-                class="px-4 py-2 text-xs font-mono text-[#8B949E] hover:text-[#F0F6FC] rounded focus-visible:outline-2 focus-visible:outline-blue-500 transition-colors">
+        <button
+          type="button"
+          (click)="cancelled.emit()"
+          class="px-4 py-2 text-xs font-mono text-[#8B949E] hover:text-[#F0F6FC] rounded focus-visible:outline-2 focus-visible:outline-blue-500 transition-colors"
+        >
           [ ยกเลิก_ABORT ]
         </button>
-        <button #confirmButton type="button" (click)="confirmed.emit()"
-                class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-mono rounded-md shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 transition-all">
+        <button
+          #confirmButton
+          type="button"
+          (click)="confirmed.emit()"
+          class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-mono rounded-md shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 transition-all"
+        >
           ตกลง_CONFIRM
         </button>
       </div>

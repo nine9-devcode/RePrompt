@@ -1,0 +1,12 @@
+{
+  "printWidth": 110,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "arrowParens": "avoid",
+  "overrides": [
+    {
+      "files": "*.html",
+      "options": { "parser": "angular", "printWidth": 130 }
+    }
+  ]
+}

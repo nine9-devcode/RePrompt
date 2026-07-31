@@ -3,37 +3,52 @@
 <div class="max-w-7xl mx-auto px-6">
   <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
     <div class="flex items-center gap-2 text-[#8B949E] text-xs font-mono uppercase tracking-widest">
-      <span class="w-2 h-2 rounded-full bg-blue-500" [class.animate-pulse]="loading() || isLoadingMore()" aria-hidden="true"></span>
+      <span
+        class="w-2 h-2 rounded-full bg-blue-500"
+        [class.animate-pulse]="loading() || isLoadingMore()"
+        aria-hidden="true"
+      ></span>
       <span aria-live="polite">ทรัพยากรที่พบ (SHOWING): {{ prompts().length }} / {{ totalFound() }}</span>
     </div>
 
     <div class="flex items-center gap-6">
       <div class="flex items-center gap-3 bg-[#161B22] px-3 py-1.5 rounded-full border border-[#30363D]">
-        <span id="strict-label" class="text-[10px] font-mono text-[#8B949E] uppercase tracking-tighter">ซ่อน NSFW ถาวร (STRICT)</span>
+        <span id="strict-label" class="text-[10px] font-mono text-[#8B949E] uppercase tracking-tighter"
+          >ซ่อน NSFW ถาวร (STRICT)</span
+        >
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" class="sr-only peer" aria-labelledby="strict-label"
-                 [checked]="settings.strictHideNsfw()" (change)="toggleStrictHide()">
-          <span class="w-8 h-4 bg-[#0D1117] border border-[#30363D] rounded-full peer peer-checked:after:translate-x-full
-                       peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500
-                       after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8B949E]
-                       after:rounded-full after:h-3 after:w-3 after:transition-all
-                       peer-checked:bg-orange-500/20 peer-checked:after:bg-orange-500"></span>
+          <input
+            type="checkbox"
+            class="sr-only peer"
+            aria-labelledby="strict-label"
+            [checked]="settings.strictHideNsfw()"
+            (change)="toggleStrictHide()"
+          />
+          <span
+            class="w-8 h-4 bg-[#0D1117] border border-[#30363D] rounded-full peer peer-checked:after:translate-x-full peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8B949E] after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500/20 peer-checked:after:bg-orange-500"
+          ></span>
         </label>
       </div>
 
       <div class="flex items-center gap-3 bg-[#161B22] px-3 py-1.5 rounded-full border border-[#30363D]">
-        <span id="censor-label" class="text-[10px] font-mono uppercase tracking-tighter"
-              [ngClass]="settings.showNsfw() ? 'text-red-400' : 'text-[#8B949E]'">
+        <span
+          id="censor-label"
+          class="text-[10px] font-mono uppercase tracking-tighter"
+          [ngClass]="settings.showNsfw() ? 'text-red-400' : 'text-[#8B949E]'"
+        >
           {{ settings.showNsfw() ? 'ไม่เซ็นเซอร์ (UNCENSORED)' : 'เซ็นเซอร์ (CENSORED)' }}
         </span>
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" class="sr-only peer" aria-labelledby="censor-label"
-                 [checked]="settings.showNsfw()" (change)="toggleGlobalNsfw()">
-          <span class="w-8 h-4 bg-[#0D1117] border border-[#30363D] rounded-full peer peer-checked:after:translate-x-full
-                       peer-focus-visible:ring-2 peer-focus-visible:ring-red-500
-                       after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8B949E]
-                       after:rounded-full after:h-3 after:w-3 after:transition-all
-                       peer-checked:bg-red-500/20 peer-checked:after:bg-red-500"></span>
+          <input
+            type="checkbox"
+            class="sr-only peer"
+            aria-labelledby="censor-label"
+            [checked]="settings.showNsfw()"
+            (change)="toggleGlobalNsfw()"
+          />
+          <span
+            class="w-8 h-4 bg-[#0D1117] border border-[#30363D] rounded-full peer peer-checked:after:translate-x-full peer-focus-visible:ring-2 peer-focus-visible:ring-red-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8B949E] after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-red-500/20 peer-checked:after:bg-red-500"
+          ></span>
         </label>
       </div>
     </div>
@@ -44,7 +59,8 @@
     [(search)]="search"
     [(category)]="category"
     [(selectedModel)]="selectedModel"
-    (changed)="onFiltersChanged()" />
+    (changed)="onFiltersChanged()"
+  />
 
   @if (loading() && prompts().length === 0) {
     <div class="flex flex-col items-center justify-center py-20">
@@ -73,11 +89,12 @@
       <app-prompt-card
         [prompt]="prompt"
         [revealed]="isRevealed(prompt.id)"
-        (open)="openModal($event)"
+        (openDetail)="openModal($event)"
         (reveal)="toggleReveal(prompt.id)"
         (recensor)="toggleReveal(prompt.id)"
         (remove)="onDelete($event)"
-        (copy)="copyToClipboard($event)" />
+        (copyText)="copyToClipboard($event)"
+      />
     }
   </div>
 
@@ -97,7 +114,8 @@
     [revealed]="isRevealed(prompt.id)"
     (closed)="closeModal()"
     (reveal)="toggleReveal(prompt.id)"
-    (copy)="copyToClipboard($event)" />
+    (copyText)="copyToClipboard($event)"
+  />
 }
 
 @if (pendingConfirm(); as confirm) {
@@ -105,5 +123,6 @@
     [title]="confirm.title"
     [message]="confirm.message"
     (confirmed)="runConfirm()"
-    (cancelled)="pendingConfirm.set(null)" />
+    (cancelled)="pendingConfirm.set(null)"
+  />
 }

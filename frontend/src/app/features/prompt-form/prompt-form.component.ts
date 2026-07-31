@@ -102,9 +102,9 @@ export class PromptFormComponent implements OnInit {
   private checkNsfwKeywords(positive: string, negative: string): void {
     if (this.promptForm.controls.isNsfw.value) return;
 
-    const matched = this.settings.keywordList().find(keyword =>
-      `${positive} ${negative}`.toLowerCase().includes(keyword)
-    );
+    const matched = this.settings
+      .keywordList()
+      .find(keyword => `${positive} ${negative}`.toLowerCase().includes(keyword));
 
     if (matched) {
       this.promptForm.controls.isNsfw.setValue(true, { emitEvent: false });
