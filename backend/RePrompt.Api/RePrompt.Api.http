@@ -1,6 +1,66 @@
 @RePrompt.Api_HostAddress = http://localhost:5144
 
-GET {{RePrompt.Api_HostAddress}}/weatherforecast/
+### List prompts (paged; limit is clamped to 1..100)
+GET {{RePrompt.Api_HostAddress}}/api/prompts?limit=20&offset=0
 Accept: application/json
+
+### Search and filter
+GET {{RePrompt.Api_HostAddress}}/api/prompts?search=cat&category=Portrait&model=sd_xl
+Accept: application/json
+
+### Hide NSFW entries server-side (strict mode)
+GET {{RePrompt.Api_HostAddress}}/api/prompts?includeNsfw=false
+Accept: application/json
+
+### Single prompt
+GET {{RePrompt.Api_HostAddress}}/api/prompts/1
+Accept: application/json
+
+### Autocomplete values for model / sampler / category
+GET {{RePrompt.Api_HostAddress}}/api/suggestions
+Accept: application/json
+
+### Create a prompt
+# imageUrl must be a url returned by POST /api/upload.
+POST {{RePrompt.Api_HostAddress}}/api/prompts
+Content-Type: application/json
+
+{
+  "title": "Neon city street",
+  "positivePrompt": "neon city street, rain, cinematic lighting",
+  "negativePrompt": "blurry, lowres",
+  "modelName": "sd_xl_base_1.0",
+  "sampler": "Euler a",
+  "steps": 30,
+  "cfgScale": 7.5,
+  "seed": "3942611316",
+  "category": "Landscape",
+  "isNsfw": false,
+  "images": []
+}
+
+### Update a prompt
+PUT {{RePrompt.Api_HostAddress}}/api/prompts/1
+Content-Type: application/json
+
+{
+  "title": "Neon city street (v2)",
+  "positivePrompt": "neon city street, rain, cinematic lighting, 8k",
+  "negativePrompt": "blurry, lowres",
+  "modelName": "sd_xl_base_1.0",
+  "sampler": "DPM++ 2M",
+  "steps": 35,
+  "cfgScale": 8,
+  "seed": "3942611316",
+  "category": "Landscape",
+  "isNsfw": false,
+  "images": []
+}
+
+### Delete a prompt (also removes its files from disk)
+DELETE {{RePrompt.Api_HostAddress}}/api/prompts/1
+
+### Delete a single image
+DELETE {{RePrompt.Api_HostAddress}}/api/images/1
 
 ###
