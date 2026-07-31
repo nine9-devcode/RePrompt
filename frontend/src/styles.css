@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0D1117] text-[#C9D1D9] font-sans;
+  }
+}
+
+/* Custom Monospace for Code Blocks */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.code-bg {
+  @apply bg-[#161B22] border border-[#30363D];
+}
+
+.syntax-string { @apply text-[#7EE787]; }
+.syntax-keyword { @apply text-[#FF7B72]; }
+.syntax-constant { @apply text-[#79C0FF]; }
+.syntax-comment { @apply text-[#8B949E]; }

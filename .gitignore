@@ -1,0 +1,38 @@
+# .NET Core
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Database (patterns are global, not path-anchored, so a moved db stays ignored)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Uploaded images and generated thumbnails — user content, never commit
+**/wwwroot/uploads/
+**/wwwroot/thumbnails/
+
+# Secrets
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+secrets.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Frontend (Node/Angular)
+node_modules/
+dist/
+.angular/
+.vscode/
+npm-debug.log*

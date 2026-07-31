@@ -1,0 +1,48 @@
+<div class="min-h-screen bg-[#0D1117] text-[#C9D1D9] font-sans selection:bg-[#21262D]">
+  <!-- IDE Sidebar/Nav Style -->
+  <nav class="bg-[#161B22] border-b border-[#30363D] sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <a routerLink="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
+            <span class="text-[10px] font-bold text-white">RP</span>
+          </div>
+          <span class="text-sm font-semibold tracking-tight text-[#F0F6FC]">REPROMPT <span class="text-[#8B949E] font-normal text-xs ml-1">v1.0.0</span></span>
+        </a>
+        <div class="hidden md:flex items-center gap-1 text-[13px]">
+          <a routerLink="/" routerLinkActive="bg-[#21262D] text-[#F0F6FC]" [routerLinkActiveOptions]="{exact: true}" 
+             class="px-3 py-1.5 rounded-md text-[#8B949E] hover:text-[#F0F6FC] transition-colors">
+            คลังภาพ (Gallery)
+          </a>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <a routerLink="/settings" class="p-2 text-[#8B949E] hover:text-[#F0F6FC] transition-colors" title="ตั้งค่า (Settings)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.311.173.68.214 1.018.114l1.246-.368c.528-.156 1.096.106 1.32.585l1.296 2.245c.243.42.148.955-.224 1.256l-1.047.843c-.276.223-.424.562-.395.918.016.31.066.626.066.945s-.05.636-.066.945c-.029.356.119.695.395.918l1.047.843c.372.301.467.836.224 1.256l-1.296 2.245c-.224.48-.792.741-1.32.585l-1.246-.368c-.338-.1-.707-.06-1.018.114-.332.184-.582.496-.645.87l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a1.008 1.008 0 00-1.018-.114l-1.246.368c-.528.156-1.096-.106-1.32-.585L4.76 14.17c-.243-.42-.148-.956.224-1.256l1.047-.843c.276-.223.424-.562.395-.918a5.952 5.952 0 01-.066-.945c0-.319.05-.635.066-.945.029-.356-.119-.695-.395-.918l-1.047-.843c-.372-.301-.467-.836-.224-1.256l1.296-2.245c.224-.48.792-.741 1.32-.585l1.246.368c.338.1.707.06 1.018-.114.332-.184.582-.496.645-.87l.213-1.28z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </a>
+        <a routerLink="/new" class="flex items-center gap-2 px-3 py-1.5 bg-[#238636] hover:bg-[#2EA043] text-white text-[12px] font-semibold rounded-md transition-all shadow-sm">
+          <span>+</span>
+          เพิ่มใหม่ (New Entry)
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-6 flex-grow">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="py-3 px-6 bg-[#161B22] border-t border-[#30363D] flex justify-between items-center text-[10px] text-[#484F58] font-mono">
+    <div class="flex gap-6 uppercase tracking-widest items-center">
+      <span>สถานะ (Status): <span class="text-[#3FB950]">พร้อมใช้งาน (Ready)</span></span>
+      <span>ฐานข้อมูล (DB): <span class="text-blue-400">SQLite</span></span>
+    </div>
+    <p>เครื่องมือจัดการพรอมต์ (Prompt Engineering Tool) 2026</p>
+  </footer>
+
+  <app-toast></app-toast>
+</div>
