@@ -17,6 +17,31 @@
   @apply bg-[#161B22] border border-[#30363D];
 }
 
+/* Used by the detail modal's parameter panel. Previously declared inside a component's
+   scoped styles, so view encapsulation meant it never actually applied. */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d #0d1117;
+}
+
 .syntax-string { @apply text-[#7EE787]; }
 .syntax-keyword { @apply text-[#FF7B72]; }
 .syntax-constant { @apply text-[#79C0FF]; }

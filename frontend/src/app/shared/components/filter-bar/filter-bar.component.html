@@ -1,0 +1,40 @@
+<div class="mb-8 flex flex-col md:flex-row gap-4 bg-[#161B22] p-4 rounded-lg border border-[#30363D] shadow-sm">
+  <div class="flex-grow">
+    <label for="filter-search" class="sr-only">ค้นหาตามชื่อหัวข้อ (Search by title)</label>
+    <input id="filter-search"
+           type="search"
+           [ngModel]="search()"
+           (ngModelChange)="onSearchInput($event)"
+           placeholder="ค้นหาตามชื่อหัวข้อ... (Search by title)"
+           class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#C9D1D9] text-xs font-mono
+                  focus:border-blue-500 focus-visible:outline-none transition-colors">
+  </div>
+
+  <div class="md:w-48">
+    <label for="filter-category" class="sr-only">กรองตามหมวดหมู่ (Filter by category)</label>
+    <select id="filter-category"
+            [(ngModel)]="category"
+            (ngModelChange)="onSelectChange()"
+            class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#C9D1D9] text-xs font-mono
+                   focus:border-blue-500 focus-visible:outline-none transition-colors appearance-none">
+      <option value="">ทุกหมวดหมู่ (ALL_CATEGORIES)</option>
+      @for (option of suggestions().categories; track option) {
+        <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="md:w-48">
+    <label for="filter-model" class="sr-only">กรองตามโมเดล (Filter by model)</label>
+    <select id="filter-model"
+            [(ngModel)]="selectedModel"
+            (ngModelChange)="onSelectChange()"
+            class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#C9D1D9] text-xs font-mono
+                   focus:border-blue-500 focus-visible:outline-none transition-colors appearance-none">
+      <option value="">ทุกโมเดล (ALL_MODELS)</option>
+      @for (option of suggestions().models; track option) {
+        <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  </div>
+</div>

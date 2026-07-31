@@ -1,67 +1,67 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, tap } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Prompt, Suggestions, PaginatedResponse } from '../models/prompt.model';
+
+export interface PromptQuery {
+  search?: string;
+  category?: string;
+  model?: string;
+  /** When false the API omits NSFW entries, so totalCount matches what is rendered. */
+  includeNsfw?: boolean;
+  limit?: number;
+  offset?: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PromptService {
-  private apiUrl = 'http://localhost:5144/api';
-  private logSubject = new Subject<string>();
-  logs$ = this.logSubject.asObservable();
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
-
-  addLog(message: string): void {
-    const timestamp = new Date().toLocaleTimeString();
-    this.logSubject.next(`[${timestamp}] ${message}`);
+  /** Turns a stored `/uploads/...` path into a url the browser can load. */
+  absoluteImageUrl(imageUrl: string | null | undefined): string {
+    return imageUrl ? `${environment.assetsUrl}${imageUrl}` : '';
   }
 
-  getPrompts(search?: string, category?: string, model?: string, limit: number = 20, offset: number = 0): Observable<PaginatedResponse<Prompt>> {
-    let params: any = { limit, offset };
-    if (search) params.search = search;
-    if (category) params.category = category;
-    if (model) params.model = model;
+  getPrompts(query: PromptQuery = {}): Observable<PaginatedResponse<Prompt>> {
+    let params = new HttpParams()
+      .set('limit', query.limit ?? 20)
+      .set('offset', query.offset ?? 0);
 
-    return this.http.get<PaginatedResponse<Prompt>>(`${this.apiUrl}/prompts`, { params }).pipe(
-      tap(res => this.addLog(`GET /api/prompts - Received ${res.prompts.length} items (Total: ${res.totalCount})`))
-    );
+    if (query.search) params = params.set('search', query.search);
+    if (query.category) params = params.set('category', query.category);
+    if (query.model) params = params.set('model', query.model);
+    if (query.includeNsfw === false) params = params.set('includeNsfw', false);
+
+    return this.http.get<PaginatedResponse<Prompt>>(`${this.apiUrl}/prompts`, { params });
   }
 
   getPrompt(id: number): Observable<Prompt> {
-    return this.http.get<Prompt>(`${this.apiUrl}/prompts/${id}`).pipe(
-      tap(() => this.addLog(`GET /api/prompts/${id} - Inspecting resource`))
-    );
+    return this.http.get<Prompt>(`${this.apiUrl}/prompts/${id}`);
   }
 
   createPrompt(prompt: Prompt): Observable<Prompt> {
-    return this.http.post<Prompt>(`${this.apiUrl}/prompts`, prompt).pipe(
-      tap(res => this.addLog(`POST /api/prompts - Resource created: ID=${res.id}`))
-    );
+    return this.http.post<Prompt>(`${this.apiUrl}/prompts`, prompt);
   }
 
   updatePrompt(id: number, prompt: Prompt): Observable<Prompt> {
-    return this.http.put<Prompt>(`${this.apiUrl}/prompts/${id}`, prompt).pipe(
-      tap(() => this.addLog(`PUT /api/prompts/${id} - Resource updated successfully`))
-    );
+    return this.http.put<Prompt>(`${this.apiUrl}/prompts/${id}`, prompt);
   }
 
   deletePrompt(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/prompts/${id}`).pipe(
-      tap(() => this.addLog(`DELETE /api/prompts/${id} - Resource purged from database and filesystem`))
-    );
+    return this.http.delete<void>(`${this.apiUrl}/prompts/${id}`);
   }
 
   uploadImage(file: File): Observable<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string }>(`${this.apiUrl}/upload`, formData).pipe(
-      tap(res => this.addLog(`POST /api/upload - Binary asset uploaded: ${res.url}`))
-    );
+    return this.http.post<{ url: string }>(`${this.apiUrl}/upload`, formData);
   }
 
-  getSuggestions(): Observable<{ models: string[], samplers: string[], categories: string[] }> {
-    return this.http.get<{ models: string[], samplers: string[], categories: string[] }>(`${this.apiUrl}/suggestions`);
+  getSuggestions(): Observable<Suggestions> {
+    return this.http.get<Suggestions>(`${this.apiUrl}/suggestions`);
   }
 }

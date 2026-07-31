@@ -1,509 +1,308 @@
-import { Component, OnInit, inject, PLATFORM_ID, HostListener, DestroyRef } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  HostListener,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { PromptService } from '../../core/services/prompt.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Prompt, Suggestions } from '../../core/models/prompt.model';
+
+interface ImageMeta {
+  name: string;
+  width: number;
+  height: number;
+  size: string;
+}
+
+/** `datetime-local` expects local wall-clock time; toISOString() would shift it by the UTC offset. */
+function toDateTimeLocalValue(date: Date): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
 
 @Component({
   selector: 'app-prompt-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  template: `
-    <div class="max-w-4xl mx-auto p-6 font-mono text-[#C9D1D9]">
-      <!-- Global Drag & Drop Overlay -->
-      <div *ngIf="isDragging" class="fixed inset-0 z-[100] bg-[#0D1117]/60 backdrop-blur-[2px] border-4 border-dashed border-blue-500/40 flex flex-col items-center justify-center p-12 pointer-events-none animate-in fade-in duration-200">
-         <div class="bg-[#161B22] border border-[#30363D] rounded-2xl p-12 shadow-2xl flex flex-col items-center gap-6 animate-in zoom-in-95 duration-200">
-            <div class="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500 animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-              </svg>
-            </div>
-            <div class="text-center space-y-2">
-              <h2 class="text-2xl font-bold text-[#F0F6FC] uppercase tracking-widest">วางรูปภาพที่นี่ (DROP_IMAGE_HERE)</h2>
-              <p class="text-[#8B949E] text-sm font-mono tracking-tighter">// ระบบจะประมวลผลและดึงข้อมูลให้ทันที (Automatic metadata extraction enabled)</p>
-            </div>
-         </div>
-      </div>
-
-      <div class="mb-8 border-b border-[#30363D] pb-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-xl font-bold text-[#F0F6FC] tracking-tight flex items-center gap-2">
-            <span class="text-blue-500">{{ isEditMode ? 'แก้ไขข้อมูล (Edit)' : 'สร้างใหม่ (New)' }}</span>_SOURCE_FILE.ts
-          </h1>
-          <p class="text-[#8B949E] text-xs mt-1">// {{ isEditMode ? 'อัปเดตข้อมูลพรอมต์เดิม (Update existing prompt)' : 'เริ่มต้นสร้างอ็อบเจกต์พรอมต์ใหม่พร้อมข้อมูลเสริม (Initialize a new prompt)' }}</p>
-        </div>
-        <a routerLink="/" class="text-xs text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest">[ ยกเลิก (Abort) ]</a>
-      </div>
-
-      <form [formGroup]="promptForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Main Editor Section -->
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
-            <div class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] flex items-center gap-2 text-[10px] text-[#8B949E] font-bold">
-               <span class="text-green-500">ข้อมูล (JSON)</span> ฟิลด์ที่แก้ไขได้ (EDITABLE_FIELDS)
-            </div>
-            
-            <div class="p-6 space-y-6">
-              <!-- Title & Category -->
-              <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <div class="flex items-center gap-2 text-[11px] font-bold">
-                    <span class="text-purple-400">const</span> <span class="text-blue-400">ชื่อหัวข้อ (title)</span> =
-                  </div>
-                  <input type="text" formControlName="title" 
-                         placeholder="'ชื่อพรอมต์...'"
-                         class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#7EE787] text-sm focus:border-blue-500 outline-none transition-all">
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center gap-2 text-[11px] font-bold">
-                    <span class="text-purple-400">const</span> <span class="text-blue-400">หมวดหมู่ (category)</span> =
-                  </div>
-                  <input type="text" formControlName="category"
-                         placeholder="'ทั่วไป (General)'"
-                         class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm focus:border-blue-500 outline-none transition-all">
-                  
-                  <!-- Clickable Chips for Categories -->
-                  <div class="flex flex-wrap gap-1.5 mt-2">
-                    <button type="button" *ngFor="let c of suggestions.categories"
-                            (click)="selectOption('category', c)"
-                            class="px-2 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all">
-                      {{ c }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Prompts -->
-              <div class="space-y-2">
-                <div class="flex items-center gap-2 text-[11px] font-bold">
-                   <span class="text-purple-400">const</span> <span class="text-blue-400">พรอมต์หลัก (positive_prompt)</span> = \`
-                </div>
-                <textarea formControlName="positivePrompt" rows="5"
-                          placeholder="รายละเอียดภาพที่ต้องการ (Masterpiece, ultra detailed...)"
-                          class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#D2A8FF] text-sm focus:border-blue-500 outline-none transition-all resize-none"></textarea>
-                <div class="text-[11px] font-bold text-gray-500">\`;</div>
-              </div>
-
-              <div class="space-y-2">
-                <div class="flex items-center gap-2 text-[11px] font-bold">
-                   <span class="text-purple-400">const</span> <span class="text-blue-400">พรอมต์เชิงลบ (negative_prompt)</span> = \`
-                </div>
-                <textarea formControlName="negativePrompt" rows="3"
-                          placeholder="สิ่งที่ไม่ต้องการในภาพ (Low quality, blurry...)"
-                          class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#FF7B72] text-sm focus:border-blue-500 outline-none transition-all resize-none"></textarea>
-                <div class="text-[11px] font-bold text-gray-500">\`;</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Parameters Block -->
-          <div class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden">
-             <div class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold">
-               การตั้งค่า (ENGINE_CONFIG)
-             </div>
-             <div class="p-6 grid grid-cols-2 gap-6">
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">ชื่อโมเดล (modelName)</span>
-                  <input type="text" formControlName="modelName" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs focus:border-blue-500 outline-none">
-                  
-                  <!-- Clickable Chips for Models -->
-                  <div class="flex flex-wrap gap-1 mt-1.5">
-                    <button type="button" *ngFor="let m of suggestions.models"
-                            (click)="selectOption('modelName', m)"
-                            class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[9px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all">
-                      {{ m }}
-                    </button>
-                  </div>
-                </div>
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">ตัวอย่าง (sampler)</span>
-                  <input type="text" formControlName="sampler" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-blue-400 text-xs focus:border-blue-500 outline-none">
-                  
-                  <!-- Clickable Chips for Samplers -->
-                  <div class="flex flex-wrap gap-1 mt-1.5">
-                    <button type="button" *ngFor="let s of suggestions.samplers"
-                            (click)="selectOption('sampler', s)"
-                            class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[9px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all">
-                      {{ s }}
-                    </button>
-                  </div>
-                </div>
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">จำนวนก้าว (steps)</span>
-                  <input type="number" formControlName="steps" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 outline-none">
-                </div>
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">มาตราส่วน (cfgScale)</span>
-                  <input type="number" formControlName="cfgScale" step="0.5" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 outline-none">
-                </div>
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">เมล็ด (seed)</span>
-                  <input type="text" formControlName="seed" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-orange-400 text-xs focus:border-blue-500 outline-none">
-                </div>
-                <div class="space-y-1.5">
-                  <span class="text-[10px] text-[#8B949E] font-bold lowercase">วันที่สร้าง (created_at)</span>
-                  <input type="datetime-local" formControlName="createdAt" class="w-full px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded-md text-[#8B949E] text-[10px] focus:border-blue-500 outline-none uppercase">
-                </div>
-                <div class="space-y-1.5 flex flex-col justify-end pb-1">
-                  <label class="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" formControlName="isNsfw" class="hidden peer">
-                    <div class="w-10 h-5 bg-[#0D1117] border border-[#30363D] rounded-full peer-checked:bg-red-500/20 peer-checked:border-red-500/50 transition-all relative">
-                      <div class="absolute top-1 left-1 w-3 h-3 bg-[#30363D] rounded-full peer-checked:bg-red-500 peer-checked:translate-x-5 transition-all"></div>
-                    </div>
-                    <span class="text-[10px] font-bold uppercase transition-colors flex items-center gap-1.5" [class.text-red-500]="promptForm.get('isNsfw')?.value" [class.text-[#8B949E]]="!promptForm.get('isNsfw')?.value">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                      </svg>
-                      NSFW (18+)
-                    </span>
-                  </label>
-                </div>
-             </div>
-          </div>
-        </div>
-
-        <!-- Sidebar / Image Upload & Meta -->
-        <div class="space-y-6">
-          <div class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden p-6 shadow-xl">
-             <div class="text-[10px] text-[#8B949E] font-bold mb-4 uppercase tracking-widest">>> ตัวจัดการรูปภาพ (IMAGE_BUFFER)</div>
-             
-             <div class="relative h-64 bg-[#0D1117] rounded-md border-2 border-dashed border-[#30363D] flex flex-col items-center justify-center group overflow-hidden transition-all hover:border-blue-500/50">
-                <input type="file" (change)="onFileSelected($event)" accept="image/*"
-                       class="absolute inset-0 opacity-0 cursor-pointer z-10">
-                
-                <div *ngIf="!imagePreview" class="text-center p-4">
-                  <p class="text-[10px] text-[#484F58] mb-2 uppercase tracking-widest">ลากและวางรูปภาพที่นี่ (DRAG_AND_DROP)</p>
-                  <p class="text-blue-500 text-xs">[ นำเข้า (Import) ]</p>
-                </div>
-                
-                <img *ngIf="imagePreview" [src]="imagePreview" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-             </div>
-
-             <!-- Image Metadata -->
-             <div *ngIf="imageMeta" class="mt-6 space-y-3 font-mono text-[10px] border-t border-[#30363D] pt-4 animate-in fade-in slide-in-from-top-1">
-                <div class="flex justify-between">
-                  <span class="text-[#484F58]">ชื่อไฟล์ (FILENAME):</span>
-                  <span class="text-[#8B949E] truncate ml-4">{{ imageMeta.name }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[#484F58]">ความละเอียด (RESOLUTION):</span>
-                  <span class="text-blue-400">{{ imageMeta.width }}x{{ imageMeta.height }} พิกเซล (PX)</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[#484F58]">ขนาดไฟล์ (FILE_SIZE):</span>
-                  <span class="text-orange-400">{{ imageMeta.size }}</span>
-                </div>
-             </div>
-          </div>
-
-          <button type="submit" [disabled]="promptForm.invalid || isSubmitting"
-                  class="w-full py-4 bg-[#238636] hover:bg-[#2EA043] text-white rounded-md font-bold text-sm shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-            {{ isSubmitting ? 'กำลังทำงาน (EXECUTING...)' : (isEditMode ? 'บันทึกการแก้ไข (SAVE_CHANGES)' : 'บันทึกข้อมูล (COMMIT_CHANGES)') }}
-          </button>
-        </div>
-      </form>
-    </div>
-  `
+  imports: [ReactiveFormsModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './prompt-form.component.html',
 })
 export class PromptFormComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private promptService = inject(PromptService);
-  private toastService = inject(ToastService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private platformId = inject(PLATFORM_ID);
-  private destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly promptService = inject(PromptService);
+  private readonly settings = inject(SettingsService);
+  private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  promptForm: FormGroup = this.fb.group({
+  readonly promptForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
     positivePrompt: ['', Validators.required],
     negativePrompt: [''],
     modelName: [''],
     sampler: ['Euler a'],
-    steps: [20],
-    cfgScale: [7.0],
+    steps: [20, [Validators.min(1), Validators.max(1000)]],
+    cfgScale: [7.0, [Validators.min(0), Validators.max(100)]],
     seed: [''],
     category: ['General'],
     isNsfw: [false],
-    createdAt: [new Date().toISOString().slice(0, 16)] // Default to current time
+    createdAt: [toDateTimeLocalValue(new Date())],
   });
 
-  suggestions: Suggestions = { models: [], samplers: [], categories: [] };
-  selectedFile: File | null = null;
-  imagePreview: string | null = null;
-  imageMeta: { name: string, width: number, height: number, size: string } | null = null;
-  isSubmitting = false;
-  isEditMode = false;
-  promptId: number | null = null;
-  existingImageUrl: string | null = null;
-  nsfwKeywords: string[] = [];
-  isDragging = false;
+  protected readonly suggestions = signal<Suggestions>({ models: [], samplers: [], categories: [] });
+  protected readonly imagePreview = signal<string | null>(null);
+  protected readonly imageMeta = signal<ImageMeta | null>(null);
+  protected readonly isSubmitting = signal(false);
+  protected readonly isEditMode = signal(false);
+  protected readonly isDragging = signal(false);
+
+  private selectedFile: File | null = null;
+  private promptId: number | null = null;
+  private existingImageUrl: string | null = null;
   private dragCounter = 0;
 
   ngOnInit(): void {
-    this.promptService.getSuggestions().subscribe(data => this.suggestions = data);
+    this.promptService.getSuggestions().subscribe({
+      next: data => this.suggestions.set(data),
+      error: () => this.suggestions.set({ models: [], samplers: [], categories: [] }),
+    });
 
-    if (isPlatformBrowser(this.platformId)) {
-      const savedKeywords = localStorage.getItem('nsfwKeywords');
-      if (savedKeywords) {
-        this.nsfwKeywords = savedKeywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
-      }
-    }
-
-    // Subscribe to prompt changes for auto-NSFW flagging
-    this.promptForm.get('positivePrompt')?.valueChanges
+    this.promptForm.controls.positivePrompt.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(val => this.checkNsfwKeywords(val, this.promptForm.value.negativePrompt));
-    this.promptForm.get('negativePrompt')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(val => this.checkNsfwKeywords(this.promptForm.value.positivePrompt, val));
+      .subscribe(value => this.checkNsfwKeywords(value, this.promptForm.controls.negativePrompt.value));
 
-    // Check for ID in route
+    this.promptForm.controls.negativePrompt.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => this.checkNsfwKeywords(this.promptForm.controls.positivePrompt.value, value));
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.isEditMode = true;
-      this.promptId = +id;
+      this.isEditMode.set(true);
+      this.promptId = Number(id);
       this.loadPrompt(this.promptId);
     }
   }
 
-  selectOption(controlName: string, value: string): void {
-    this.promptForm.get(controlName)?.setValue(value);
+  protected selectOption(controlName: 'category' | 'modelName' | 'sampler', value: string): void {
+    this.promptForm.controls[controlName].setValue(value);
   }
 
   private checkNsfwKeywords(positive: string, negative: string): void {
-    if (this.nsfwKeywords.length === 0 || this.promptForm.get('isNsfw')?.value === true) return;
+    if (this.promptForm.controls.isNsfw.value) return;
 
-    const combined = (positive + ' ' + negative).toLowerCase();
-    const foundKeyword = this.nsfwKeywords.find(k => combined.includes(k));
+    const matched = this.settings.keywordList().find(keyword =>
+      `${positive} ${negative}`.toLowerCase().includes(keyword)
+    );
 
-    if (foundKeyword) {
-      this.promptForm.patchValue({ isNsfw: true }, { emitEvent: false });
-      this.toastService.show(`ตรวจพบคำที่เกี่ยวข้องกับ NSFW: "${foundKeyword}" (AUTO_FLAGGED)`, 'info');
+    if (matched) {
+      this.promptForm.controls.isNsfw.setValue(true, { emitEvent: false });
+      this.toastService.show(`ตรวจพบคำที่เกี่ยวข้องกับ NSFW: "${matched}" (AUTO_FLAGGED)`, 'info');
     }
   }
 
-  loadPrompt(id: number): void {
+  private loadPrompt(id: number): void {
     this.promptService.getPrompt(id).subscribe({
-      next: (prompt) => {
+      next: prompt => {
         this.promptForm.patchValue({
           title: prompt.title,
           positivePrompt: prompt.positivePrompt,
-          negativePrompt: prompt.negativePrompt,
-          modelName: prompt.modelName,
-          sampler: prompt.sampler,
+          negativePrompt: prompt.negativePrompt ?? '',
+          modelName: prompt.modelName ?? '',
+          sampler: prompt.sampler ?? '',
           steps: prompt.steps,
           cfgScale: prompt.cfgScale,
-          seed: prompt.seed,
+          seed: prompt.seed ?? '',
           category: prompt.category,
-          isNsfw: prompt.isNsfw || false,
-          createdAt: prompt.createdAt ? new Date(prompt.createdAt).toISOString().slice(0, 16) : null
+          isNsfw: prompt.isNsfw ?? false,
+          createdAt: toDateTimeLocalValue(prompt.createdAt ? new Date(prompt.createdAt) : new Date()),
         });
 
-        if (prompt.images && prompt.images.length > 0) {
+        if (prompt.images?.length) {
           this.existingImageUrl = prompt.images[0].imageUrl;
-          this.imagePreview = 'http://localhost:5144' + this.existingImageUrl;
+          this.imagePreview.set(this.promptService.absoluteImageUrl(this.existingImageUrl));
         }
       },
-      error: (err) => console.error('Failed to load prompt', err)
+      error: error => {
+        console.error('Failed to load prompt', error);
+        this.toastService.show('ไม่สามารถโหลดข้อมูลได้ (LOAD_FAILED)', 'error');
+      },
     });
   }
 
   @HostListener('window:dragenter', ['$event'])
-  onDragEnter(event: DragEvent): void {
+  protected onDragEnter(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
     this.dragCounter++;
-    this.isDragging = true;
+    this.isDragging.set(true);
   }
 
   @HostListener('window:dragover', ['$event'])
-  onDragOver(event: DragEvent): void {
+  protected onDragOver(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
   }
 
   @HostListener('window:dragleave', ['$event'])
-  onDragLeave(event: DragEvent): void {
+  protected onDragLeave(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
-    this.dragCounter--;
-    if (this.dragCounter <= 0) {
-      this.dragCounter = 0;
-      this.isDragging = false;
-    }
+    this.dragCounter = Math.max(0, this.dragCounter - 1);
+    if (this.dragCounter === 0) this.isDragging.set(false);
   }
 
   @HostListener('window:drop', ['$event'])
-  onDrop(event: DragEvent): void {
+  protected onDrop(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
-    this.isDragging = false;
+    this.isDragging.set(false);
     this.dragCounter = 0;
 
-    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      const file = event.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        this.processFile(file);
-      }
-    }
+    const file = event.dataTransfer?.files?.[0];
+    if (file?.type.startsWith('image/')) void this.processFile(file);
   }
 
-  onFileSelected(event: any): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    const file = event.target.files[0] as File;
-    if (file) {
-      this.processFile(file);
-    }
+  protected onFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) void this.processFile(file);
   }
 
-  async processFile(file: File): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
+  private async processFile(file: File): Promise<void> {
+    if (!this.isBrowser) return;
 
     this.selectedFile = file;
-    
-    // Auto-set title from filename (remove extension)
-    if (!this.promptForm.get('title')?.value) {
-      this.promptForm.patchValue({ title: file.name.replace(/\.[^/.]+$/, "") });
+
+    if (!this.promptForm.controls.title.value) {
+      this.promptForm.controls.title.setValue(file.name.replace(/\.[^/.]+$/, ''));
     }
 
-    // Get preview
     const reader = new FileReader();
-    reader.onload = () => this.imagePreview = reader.result as string;
+    reader.onload = () => this.imagePreview.set(reader.result as string);
     reader.readAsDataURL(file);
 
-    // Get Metadata (Dimensions/Size)
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      this.imageMeta = {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      this.imageMeta.set({
         name: file.name,
-        width: img.width,
-        height: img.height,
-        size: this.formatBytes(file.size)
-      };
+        width: image.width,
+        height: image.height,
+        size: formatBytes(file.size),
+      });
+      URL.revokeObjectURL(objectUrl);
     };
+    image.onerror = () => URL.revokeObjectURL(objectUrl);
+    image.src = objectUrl;
 
-    // Auto-Extract SD Metadata
     try {
-      const exifr = (await import(/* @vite-ignore */ 'exifr')).default;
+      const exifr = (await import('exifr')).default;
       const metadata = await exifr.parse(file, true);
-      
-      if (metadata) {
-        const rawParams = metadata.parameters || metadata.UserComment;
-        if (rawParams) {
-          this.parseSDParameters(rawParams);
-          this.toastService.show('ดึงข้อมูลจากรูปภาพสำเร็จ (METADATA_EXTRACTED)', 'success');
-        }
+      const rawParams = metadata?.parameters || metadata?.UserComment;
+      if (rawParams) {
+        this.parseSDParameters(String(rawParams));
+        this.toastService.show('ดึงข้อมูลจากรูปภาพสำเร็จ (METADATA_EXTRACTED)', 'success');
       }
-    } catch (err) {
-      console.warn('Metadata parsing skipped or failed', err);
+    } catch (error) {
+      console.warn('Metadata parsing skipped or failed', error);
     }
   }
 
   private parseSDParameters(rawText: string): void {
-    // 1. Positive Prompt (Everything before "Negative prompt:" or "Steps:")
-    let positive = rawText.split('Negative prompt:')[0].split('Steps:')[0].trim();
+    const positive = rawText.split('Negative prompt:')[0].split('Steps:')[0].trim();
 
-    // 2. Negative Prompt (Everything between "Negative prompt:" and "Steps:")
-    let negative = '';
-    if (rawText.includes('Negative prompt:')) {
-      negative = rawText.split('Negative prompt:')[1].split('Steps:')[0].trim();
-    }
+    const negative = rawText.includes('Negative prompt:')
+      ? rawText.split('Negative prompt:')[1].split('Steps:')[0].trim()
+      : '';
 
-    // 3. Extract Settings (Steps, Sampler, CFG, Seed, Model)
-    const settingsPart = rawText.includes('Steps:') ? 'Steps:' + rawText.split('Steps:')[1] : '';
-    
-    const getValue = (key: string) => {
-      const regex = new RegExp(`${key}:\\s*([^,]+)`, 'i');
-      const match = settingsPart.match(regex);
+    const settingsPart = rawText.includes('Steps:') ? `Steps:${rawText.split('Steps:')[1]}` : '';
+    const getValue = (key: string): string | null => {
+      const match = settingsPart.match(new RegExp(`${key}:\\s*([^,]+)`, 'i'));
       return match ? match[1].trim() : null;
     };
 
     const steps = getValue('Steps');
-    const sampler = getValue('Sampler');
     const cfg = getValue('CFG scale');
-    const seed = getValue('Seed');
-    const model = getValue('Model');
+    const current = this.promptForm.getRawValue();
 
     this.promptForm.patchValue({
       positivePrompt: positive,
       negativePrompt: negative,
-      steps: steps ? parseInt(steps) : this.promptForm.value.steps,
-      sampler: sampler || this.promptForm.value.sampler,
-      cfgScale: cfg ? parseFloat(cfg) : this.promptForm.value.cfgScale,
-      seed: seed || this.promptForm.value.seed,
-      modelName: model || this.promptForm.value.modelName
+      steps: steps ? Number.parseInt(steps, 10) : current.steps,
+      sampler: getValue('Sampler') ?? current.sampler,
+      cfgScale: cfg ? Number.parseFloat(cfg) : current.cfgScale,
+      seed: getValue('Seed') ?? current.seed,
+      modelName: getValue('Model') ?? current.modelName,
     });
 
-    // Manually trigger NSFW check for extracted metadata
     this.checkNsfwKeywords(positive, negative);
   }
 
-  private formatBytes(bytes: number, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }
-
-  onSubmit(): void {
-    if (this.promptForm.invalid) return;
-    this.isSubmitting = true;
+  protected onSubmit(): void {
+    if (this.promptForm.invalid || this.isSubmitting()) return;
+    this.isSubmitting.set(true);
 
     if (this.selectedFile) {
       this.promptService.uploadImage(this.selectedFile).subscribe({
-        next: (res) => {
-          this.saveOrUpdatePrompt(res.url);
-        },
-        error: (err) => {
-          console.error('Upload failed', err);
+        next: response => this.saveOrUpdatePrompt(response.url),
+        error: error => {
+          console.error('Upload failed', error);
           this.toastService.show('อัปโหลดรูปล้มเหลว (UPLOAD_FAILED)', 'error');
-          this.isSubmitting = false;
-        }
+          this.isSubmitting.set(false);
+        },
       });
     } else {
-      this.saveOrUpdatePrompt(this.existingImageUrl || undefined);
+      this.saveOrUpdatePrompt(this.existingImageUrl ?? undefined);
     }
   }
 
   private saveOrUpdatePrompt(imageUrl?: string): void {
+    const value = this.promptForm.getRawValue();
+
     const promptData: Prompt = {
-      ...this.promptForm.value,
-      images: imageUrl ? [{ imageUrl }] : []
+      ...value,
+      // The control holds local wall-clock time; send an absolute instant.
+      createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
+      images: imageUrl ? [{ imageUrl }] : [],
     };
 
-    if (this.isEditMode && this.promptId) {
-      this.promptService.updatePrompt(this.promptId, promptData).subscribe({
-        next: () => {
-          this.toastService.show('อัปเดตข้อมูลสำเร็จ (RESOURCE_UPDATED)', 'success');
-          this.router.navigate(['/']);
-        },
-        error: (err) => {
-          console.error('Update failed', err);
-          this.toastService.show('การอัปเดตล้มเหลว (UPDATE_FAILED)', 'error');
-          this.isSubmitting = false;
-        }
-      });
-    } else {
-      this.promptService.createPrompt(promptData).subscribe({
-        next: () => {
-          this.toastService.show('บันทึกข้อมูลสำเร็จ (RESOURCE_CREATED)', 'success');
-          this.router.navigate(['/']);
-        },
-        error: (err) => {
-          console.error('Save failed', err);
-          this.toastService.show('การบันทึกล้มเหลว (SAVE_FAILED)', 'error');
-          this.isSubmitting = false;
-        }
-      });
-    }
+    const request$ =
+      this.isEditMode() && this.promptId !== null
+        ? this.promptService.updatePrompt(this.promptId, promptData)
+        : this.promptService.createPrompt(promptData);
+
+    const successMessage = this.isEditMode()
+      ? 'อัปเดตข้อมูลสำเร็จ (RESOURCE_UPDATED)'
+      : 'บันทึกข้อมูลสำเร็จ (RESOURCE_CREATED)';
+    const failureMessage = this.isEditMode()
+      ? 'การอัปเดตล้มเหลว (UPDATE_FAILED)'
+      : 'การบันทึกล้มเหลว (SAVE_FAILED)';
+
+    request$.subscribe({
+      next: () => {
+        this.toastService.show(successMessage, 'success');
+        void this.router.navigate(['/']);
+      },
+      error: error => {
+        console.error('Save failed', error);
+        this.toastService.show(failureMessage, 'error');
+        this.isSubmitting.set(false);
+      },
+    });
   }
+}
+
+function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(Math.max(0, decimals)))} ${sizes[i]}`;
 }

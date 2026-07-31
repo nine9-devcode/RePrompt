@@ -1,12 +1,23 @@
 import { Routes } from '@angular/router';
-import { PromptListComponent } from './features/prompt-list/prompt-list.component';
-import { PromptFormComponent } from './features/prompt-form/prompt-form.component';
-import { SettingsComponent } from './features/settings/settings.component';
 
+// Lazy loaded so the gallery's initial bundle does not carry the form (and exifr with it)
+// or the settings page.
 export const routes: Routes = [
-    { path: '', component: PromptListComponent },
-    { path: 'new', component: PromptFormComponent },
-    { path: 'edit/:id', component: PromptFormComponent },
-    { path: 'settings', component: SettingsComponent },
-    { path: '**', redirectTo: '' }
+  {
+    path: '',
+    loadComponent: () => import('./features/prompt-list/prompt-list.component').then(m => m.PromptListComponent),
+  },
+  {
+    path: 'new',
+    loadComponent: () => import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
+  },
+  {
+    path: 'edit/:id',
+    loadComponent: () => import('./features/prompt-form/prompt-form.component').then(m => m.PromptFormComponent),
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
+  },
+  { path: '**', redirectTo: '' },
 ];
