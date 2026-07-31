@@ -68,6 +68,11 @@ export class PromptService {
     return this.http.delete<void>(`${this.apiUrl}/uploads/${encodeURIComponent(fileName)}`);
   }
 
+  /** Direct link so the browser streams the zip to disk instead of buffering it in memory. */
+  get exportUrl(): string {
+    return `${this.apiUrl}/export`;
+  }
+
   getSuggestions(): Observable<Suggestions> {
     return this.http.get<Suggestions>(`${this.apiUrl}/suggestions`);
   }

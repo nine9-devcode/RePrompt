@@ -102,5 +102,6 @@ app.UseStaticFiles(new StaticFileOptions
 var api = app.MapGroup("/api");
 api.MapPromptEndpoints();
 api.MapUploadEndpoints();
+api.MapBackupEndpoints();
 
 app.Run();

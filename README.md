@@ -124,8 +124,25 @@ frontend/src/environments/   API base url แยก dev/prod
 | `GET` | `/api/suggestions` | ค่าที่เคยใช้ของ model / sampler / category |
 | `POST` | `/api/upload` | อัปโหลดภาพ คืน url สำหรับใส่ใน `images[].imageUrl` |
 | `DELETE` | `/api/uploads/{fileName}` | ลบไฟล์ที่อัปโหลดค้างไว้แต่ยังไม่ได้ผูกกับ prompt |
+| `GET` | `/api/export` | ดาวน์โหลดไฟล์สำรองทั้งหมดเป็น .zip (`prompts.json` + `images/`) |
 
 ดูตัวอย่างคำขอทั้งหมดได้ใน [`RePrompt.Api.http`](backend/RePrompt.Api/RePrompt.Api.http)
+
+---
+
+## สำรองข้อมูล (Backup)
+
+ข้อมูลทั้งหมดอยู่ใน `backend/RePrompt.Api/reprompt.db` และโฟลเดอร์ `wwwroot/uploads/` ซึ่งทั้งคู่ถูก gitignore ไว้
+และเพราะ SQLite ใช้โหมด WAL การคัดลอกเฉพาะไฟล์ `reprompt.db` อาจทำให้ข้อมูลล่าสุดหายได้
+
+ให้ใช้ปุ่ม **ดาวน์โหลดไฟล์สำรอง** ในหน้าตั้งค่า (หรือเรียก `GET /api/export`) จะได้ไฟล์ .zip ที่มี:
+
+```
+prompts.json     ข้อมูล prompt ทั้งหมด พร้อม schemaVersion
+images/          ไฟล์ภาพทุกไฟล์ที่ถูกอ้างถึง
+```
+
+ตอนนี้รองรับเฉพาะการ export — การกู้คืนต้องทำเองจากไฟล์ทั้งสองส่วน
 
 ---
 

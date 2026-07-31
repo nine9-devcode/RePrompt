@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { PromptService } from '../../core/services/prompt.service';
 import { CensorStyle, SettingsService } from '../../core/services/settings.service';
 import { NsfwOverlayComponent } from '../../shared/components/nsfw-overlay/nsfw-overlay.component';
 import { PixelateFilterComponent } from '../../shared/components/pixelate-filter/pixelate-filter.component';
@@ -17,6 +18,7 @@ const PREVIEW_FILTER_ID = 'preview-pixelate';
 })
 export class SettingsComponent {
   protected readonly settings = inject(SettingsService);
+  protected readonly exportUrl = inject(PromptService).exportUrl;
   protected readonly previewFilterId = PREVIEW_FILTER_ID;
 
   protected readonly isPreviewCensored = signal(true);

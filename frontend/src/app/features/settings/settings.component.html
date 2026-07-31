@@ -210,6 +210,51 @@
         </div>
       </section>
 
+      <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
+        <h2
+          class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest"
+        >
+          Backup &amp; Export
+        </h2>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-[#F0F6FC]">ส่งออกข้อมูลทั้งหมด (Export everything)</h3>
+            <p class="text-[11px] text-[#8B949E] mt-1">
+              // ดาวน์โหลดเป็นไฟล์ .zip ประกอบด้วย prompts.json และรูปภาพทั้งหมดในโฟลเดอร์ images/
+            </p>
+          </div>
+
+          <p class="text-[10px] text-[#8B949E] leading-relaxed">
+            ข้อมูลทั้งหมดอยู่ในไฟล์ SQLite ไฟล์เดียวที่ถูก gitignore ไว้ และการคัดลอกเฉพาะ reprompt.db
+            อาจทำให้ข้อมูลล่าสุดหายเพราะยังค้างอยู่ใน WAL — ใช้ปุ่มนี้สำรองข้อมูลจะปลอดภัยกว่า
+          </p>
+
+          <a
+            [href]="exportUrl"
+            download
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-[#C9D1D9] text-xs font-bold rounded-md transition-all"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+              />
+            </svg>
+            ดาวน์โหลดไฟล์สำรอง (DOWNLOAD_BACKUP)
+          </a>
+        </div>
+      </section>
+
       <div class="flex justify-end gap-3">
         <a
           routerLink="/"
