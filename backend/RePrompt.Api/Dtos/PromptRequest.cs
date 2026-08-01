@@ -45,10 +45,22 @@ public sealed class PromptRequest
     /// </summary>
     public DateTime? CreatedAt { get; set; }
 
+    /// <summary>
+    /// Plain names. They are trimmed, lowercased and de-duplicated on the way in, and
+    /// existing tags are reused rather than duplicated.
+    /// </summary>
+    [MaxLength(30, ErrorMessage = "A prompt cannot have more than 30 tags.")]
+    public List<string> Tags { get; set; } = [];
+
     [MaxLength(20, ErrorMessage = "A prompt cannot have more than 20 images.")]
     public List<ImageRequest> Images { get; set; } = [];
 }
 
+/// <summary>
+/// Only the upload url is accepted. The thumbnail and the dimensions are read back from
+/// disk on the server, so a client cannot point a record at someone else's file or lie
+/// about its size.
+/// </summary>
 public sealed class ImageRequest
 {
     [Required]

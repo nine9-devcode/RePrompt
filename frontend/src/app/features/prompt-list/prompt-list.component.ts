@@ -55,11 +55,17 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly totalFound = signal(0);
   protected readonly loading = signal(true);
   protected readonly isLoadingMore = signal(false);
-  protected readonly suggestions = signal<Suggestions>({ models: [], samplers: [], categories: [] });
+  protected readonly suggestions = signal<Suggestions>({
+    models: [],
+    samplers: [],
+    categories: [],
+    tags: [],
+  });
 
   protected readonly search = signal('');
   protected readonly category = signal('');
   protected readonly selectedModel = signal('');
+  protected readonly selectedTags = signal<string[]>([]);
 
   protected readonly selectedPrompt = signal<Prompt | null>(null);
   protected readonly revealedIds = signal<ReadonlySet<number>>(new Set());
@@ -73,7 +79,7 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchData();
     this.promptService.getSuggestions().subscribe({
       next: data => this.suggestions.set(data),
-      error: () => this.suggestions.set({ models: [], samplers: [], categories: [] }),
+      error: () => this.suggestions.set({ models: [], samplers: [], categories: [], tags: [] }),
     });
   }
 
@@ -118,11 +124,25 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.search.set('');
     this.category.set('');
     this.selectedModel.set('');
+    this.selectedTags.set([]);
     this.fetchData();
   }
 
   protected get hasActiveFilters(): boolean {
-    return this.search() !== '' || this.category() !== '' || this.selectedModel() !== '';
+    return (
+      this.search() !== '' ||
+      this.category() !== '' ||
+      this.selectedModel() !== '' ||
+      this.selectedTags().length > 0
+    );
+  }
+
+  /** Clicking a tag on a card or in the modal narrows the gallery to it. */
+  protected onTagSelected(tag: string): void {
+    if (this.selectedTags().includes(tag)) return;
+    this.selectedTags.set([...this.selectedTags(), tag]);
+    this.closeModal();
+    this.fetchData();
   }
 
   protected toggleStrictHide(): void {
@@ -231,6 +251,7 @@ export class PromptListComponent implements OnInit, AfterViewInit, OnDestroy {
         search: this.search(),
         category: this.category(),
         model: this.selectedModel(),
+        tags: this.selectedTags(),
         includeNsfw: !this.settings.strictHideNsfw(),
         limit: PAGE_SIZE,
         offset: append ? this.prompts().length : 0,

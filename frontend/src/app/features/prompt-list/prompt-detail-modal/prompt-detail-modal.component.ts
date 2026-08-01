@@ -38,6 +38,7 @@ export class PromptDetailModalComponent implements AfterViewInit, OnDestroy {
   readonly closed = output<void>();
   readonly reveal = output<void>();
   readonly copyText = output<{ text: string; message: string }>();
+  readonly tagSelected = output<string>();
 
   protected readonly zoomScale = signal(1);
   protected readonly panX = signal(0);

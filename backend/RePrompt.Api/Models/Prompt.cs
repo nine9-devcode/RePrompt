@@ -39,4 +39,8 @@ public class Prompt
 
     // Navigation property for Images (One-to-Many)
     public List<Image> Images { get; set; } = new();
+
+    // Free-form tags (many-to-many). Category stays a single required bucket; tags are
+    // the open-ended dimension you can combine when filtering.
+    public List<Tag> Tags { get; set; } = [];
 }

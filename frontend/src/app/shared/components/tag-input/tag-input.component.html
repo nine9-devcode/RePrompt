@@ -1,0 +1,47 @@
+<div class="space-y-2">
+  <div
+    class="flex flex-wrap items-center gap-1.5 min-h-[42px] px-3 py-2 bg-[#0D1117] border border-[#30363D] rounded-md focus-within:border-blue-500 transition-colors"
+  >
+    @for (tag of tags(); track tag) {
+      <span
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[11px]"
+      >
+        #{{ tag }}
+        <button
+          type="button"
+          (click)="remove(tag)"
+          [attr.aria-label]="'ลบแท็ก ' + tag"
+          class="hover:text-red-400 transition-colors leading-none"
+        >
+          &times;
+        </button>
+      </span>
+    }
+
+    <input
+      id="tag-input"
+      type="text"
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="commit(draft())"
+      [disabled]="isFull()"
+      [placeholder]="isFull() ? 'ครบ ' + maxTags() + ' แท็กแล้ว' : 'พิมพ์แล้วกด Enter...'"
+      class="flex-1 min-w-[140px] bg-transparent text-[#7EE787] text-xs outline-none disabled:opacity-40"
+    />
+  </div>
+
+  @if (available().length > 0) {
+    <div class="flex flex-wrap gap-1">
+      @for (suggestion of available(); track suggestion) {
+        <button
+          type="button"
+          (click)="commit(suggestion)"
+          class="px-1.5 py-0.5 rounded border border-[#30363D] bg-[#21262D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all"
+        >
+          #{{ suggestion }}
+        </button>
+      }
+    </div>
+  }
+</div>

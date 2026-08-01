@@ -12,6 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSingleton<ImageStorageService>();
+builder.Services.AddHostedService<ThumbnailBackfillService>();
 
 // Turns unhandled exceptions and bare status codes into RFC 7807 responses instead of
 // raw 500s, so the Angular client always gets a parseable error body.
@@ -85,18 +86,35 @@ var uploadContentTypes = new FileExtensionContentTypeProvider(new Dictionary<str
     [".gif"] = "image/gif",
 });
 
+static void HardenImageResponse(StaticFileResponseContext context)
+{
+    var headers = context.Context.Response.Headers;
+    headers.XContentTypeOptions = "nosniff";
+    headers.ContentSecurityPolicy = "default-src 'none'; sandbox";
+}
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(imageStorage.UploadsDirectory),
     RequestPath = ImageStorageService.RequestPath,
     ContentTypeProvider = uploadContentTypes,
     ServeUnknownFileTypes = false,
+    OnPrepareResponse = HardenImageResponse,
+});
+
+// Thumbnails are always WebP and are content-addressed by a GUID, so they can be
+// cached hard — a given url's bytes never change.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(imageStorage.ThumbnailsDirectory),
+    RequestPath = ImageStorageService.ThumbnailRequestPath,
+    ContentTypeProvider = uploadContentTypes,
+    ServeUnknownFileTypes = false,
     OnPrepareResponse = context =>
     {
-        var headers = context.Context.Response.Headers;
-        headers.XContentTypeOptions = "nosniff";
-        headers.ContentSecurityPolicy = "default-src 'none'; sandbox";
-    }
+        HardenImageResponse(context);
+        context.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+    },
 });
 
 var api = app.MapGroup("/api");

@@ -13,9 +13,12 @@
         <img
           [src]="imageUrl()"
           [alt]="prompt().title"
+          [attr.width]="width()"
+          [attr.height]="height()"
           loading="lazy"
           decoding="async"
           [style.filter]="censorFilter()"
+          [style.aspect-ratio]="width() && height() ? width() + ' / ' + height() : null"
           [class.invisible]="isBlockedOut()"
           class="w-full h-auto object-cover opacity-80 transition-[filter,opacity] duration-500"
         />
@@ -164,6 +167,21 @@
       <span class="truncate">{{ prompt().modelName || 'std' }}</span>
       <span class="shrink-0 ml-2">{{ prompt().createdAt | date: 'dd/MM/yyyy' }}</span>
     </div>
+
+    @if (prompt().tags.length > 0) {
+      <div class="flex flex-wrap gap-1 mb-3">
+        @for (tag of prompt().tags; track tag) {
+          <button
+            type="button"
+            (click)="tagSelected.emit(tag)"
+            [attr.aria-label]="'กรองตามแท็ก ' + tag"
+            class="px-1.5 py-0.5 rounded bg-[#21262D] border border-[#30363D] text-[10px] text-[#8B949E] hover:border-blue-500 hover:text-blue-400 transition-all"
+          >
+            #{{ tag }}
+          </button>
+        }
+      </div>
+    }
 
     <div class="mt-auto space-y-1.5">
       <div class="text-[10px] line-clamp-2 leading-relaxed italic border-l-2 border-[#7EE787] pl-2">

@@ -16,6 +16,7 @@ import { PromptService } from '../../core/services/prompt.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Prompt, Suggestions } from '../../core/models/prompt.model';
+import { TagInputComponent } from '../../shared/components/tag-input/tag-input.component';
 
 interface ImageMeta {
   name: string;
@@ -33,7 +34,7 @@ function toDateTimeLocalValue(date: Date): string {
 @Component({
   selector: 'app-prompt-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TagInputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './prompt-form.component.html',
 })
@@ -61,7 +62,15 @@ export class PromptFormComponent implements OnInit {
     createdAt: [toDateTimeLocalValue(new Date())],
   });
 
-  protected readonly suggestions = signal<Suggestions>({ models: [], samplers: [], categories: [] });
+  protected readonly suggestions = signal<Suggestions>({
+    models: [],
+    samplers: [],
+    categories: [],
+    tags: [],
+  });
+
+  /** Tags live outside the reactive form; the chip editor owns them. */
+  protected readonly tags = signal<string[]>([]);
   protected readonly imagePreview = signal<string | null>(null);
   protected readonly imageMeta = signal<ImageMeta | null>(null);
   protected readonly isSubmitting = signal(false);
@@ -76,7 +85,7 @@ export class PromptFormComponent implements OnInit {
   ngOnInit(): void {
     this.promptService.getSuggestions().subscribe({
       next: data => this.suggestions.set(data),
-      error: () => this.suggestions.set({ models: [], samplers: [], categories: [] }),
+      error: () => this.suggestions.set({ models: [], samplers: [], categories: [], tags: [] }),
     });
 
     this.promptForm.controls.positivePrompt.valueChanges
@@ -128,6 +137,8 @@ export class PromptFormComponent implements OnInit {
           isNsfw: prompt.isNsfw ?? false,
           createdAt: toDateTimeLocalValue(prompt.createdAt ? new Date(prompt.createdAt) : new Date()),
         });
+
+        this.tags.set(prompt.tags ?? []);
 
         if (prompt.images?.length) {
           this.existingImageUrl = prompt.images[0].imageUrl;
@@ -274,6 +285,7 @@ export class PromptFormComponent implements OnInit {
       ...value,
       // The control holds local wall-clock time; send an absolute instant.
       createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
+      tags: this.tags(),
       images: imageUrl ? [{ imageUrl }] : [],
     };
 

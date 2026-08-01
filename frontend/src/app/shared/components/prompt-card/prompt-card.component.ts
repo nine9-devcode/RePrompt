@@ -26,6 +26,7 @@ export class PromptCardComponent {
   readonly recensor = output<void>();
   readonly remove = output<number>();
   readonly copyText = output<{ text: string; message: string }>();
+  readonly tagSelected = output<string>();
 
   // Derived from signals, so the parent no longer has to rebuild the whole prompt
   // array every time a censor setting changes.
@@ -41,10 +42,19 @@ export class PromptCardComponent {
     this.isBlurred() ? this.settings.buildCensorFilter() : 'none'
   );
 
+  private readonly firstImage = computed(() => this.prompt().images?.[0]);
+
+  /** Prefers the generated thumbnail; older rows without one fall back to the original. */
   protected readonly imageUrl = computed(() => {
-    const images = this.prompt().images;
-    return images?.length ? this.promptService.absoluteImageUrl(images[0].imageUrl) : '';
+    const image = this.firstImage();
+    if (!image) return '';
+    return this.promptService.absoluteImageUrl(image.thumbnailUrl ?? image.imageUrl);
   });
+
+  // Given to the <img> so the browser reserves the right box before the file arrives,
+  // which stops the masonry columns reflowing as images stream in.
+  protected readonly width = computed(() => this.firstImage()?.width ?? null);
+  protected readonly height = computed(() => this.firstImage()?.height ?? null);
 
   protected onPreviewClick(): void {
     if (this.isBlurred()) {

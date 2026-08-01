@@ -33,6 +33,7 @@ public static class BackupEndpoints
             var prompts = await db.Prompts
                 .AsNoTracking()
                 .Include(p => p.Images)
+                .Include(p => p.Tags)
                 .OrderBy(p => p.Id)
                 .ToListAsync(cancellationToken);
 
@@ -43,6 +44,8 @@ public static class BackupEndpoints
                 prompts.Select(p => new ExportedPrompt(
                     p.Id, p.Title, p.PositivePrompt, p.NegativePrompt, p.Sampler, p.Steps,
                     p.CFGScale, p.Seed, p.ModelName, p.Category, p.IsNsfw, p.CreatedAt,
+                    p.Tags.Select(t => t.Name).OrderBy(name => name).ToList(),
+                    // Originals only; thumbnails are derived and get regenerated on import.
                     p.Images.Select(i => i.ImageUrl).ToList())).ToList());
 
             // InvariantCulture matters here: on a Thai system the default calendar renders
@@ -125,5 +128,6 @@ public static class BackupEndpoints
         string Category,
         bool IsNsfw,
         DateTime CreatedAt,
+        IReadOnlyList<string> Tags,
         IReadOnlyList<string> Images);
 }

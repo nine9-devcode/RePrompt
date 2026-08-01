@@ -16,7 +16,13 @@ public static class UploadEndpoints
             var result = await storage.SaveAsync(file, cancellationToken);
 
             return result.Success
-                ? Results.Ok(new { url = result.Url })
+                ? Results.Ok(new
+                {
+                    url = result.Url,
+                    thumbnailUrl = result.ThumbnailUrl,
+                    width = result.Width,
+                    height = result.Height,
+                })
                 : Results.BadRequest(new { error = result.Error });
         }).DisableAntiforgery();
 
@@ -37,7 +43,8 @@ public static class UploadEndpoints
             if (await db.Images.AnyAsync(image => image.ImageUrl == imageUrl))
                 return Results.Conflict(new { error = "This upload belongs to a saved prompt." });
 
-            storage.DeleteIfExists(imageUrl);
+            var (thumbnailUrl, _, _) = storage.DescribeStoredImage(imageUrl);
+            storage.DeleteIfExists(imageUrl, thumbnailUrl);
             return Results.NoContent();
         });
 

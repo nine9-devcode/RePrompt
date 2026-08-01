@@ -2,12 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Prompt, Suggestions, PaginatedResponse } from '../models/prompt.model';
+import { Prompt, Suggestions, PaginatedResponse, TagCount } from '../models/prompt.model';
+
+export interface UploadResult {
+  url: string;
+  thumbnailUrl: string | null;
+  width: number | null;
+  height: number | null;
+}
 
 export interface PromptQuery {
   search?: string;
   category?: string;
   model?: string;
+  /** Narrows to prompts carrying every one of these tags. */
+  tags?: string[];
   /** When false the API omits NSFW entries, so totalCount matches what is rendered. */
   includeNsfw?: boolean;
   limit?: number;
@@ -32,6 +41,7 @@ export class PromptService {
     if (query.search) params = params.set('search', query.search);
     if (query.category) params = params.set('category', query.category);
     if (query.model) params = params.set('model', query.model);
+    if (query.tags?.length) params = params.set('tags', query.tags.join(','));
     if (query.includeNsfw === false) params = params.set('includeNsfw', false);
 
     return this.http.get<PaginatedResponse<Prompt>>(`${this.apiUrl}/prompts`, { params });
@@ -53,10 +63,10 @@ export class PromptService {
     return this.http.delete<void>(`${this.apiUrl}/prompts/${id}`);
   }
 
-  uploadImage(file: File): Observable<{ url: string }> {
+  uploadImage(file: File): Observable<UploadResult> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string }>(`${this.apiUrl}/upload`, formData);
+    return this.http.post<UploadResult>(`${this.apiUrl}/upload`, formData);
   }
 
   /**
@@ -75,5 +85,10 @@ export class PromptService {
 
   getSuggestions(): Observable<Suggestions> {
     return this.http.get<Suggestions>(`${this.apiUrl}/suggestions`);
+  }
+
+  /** Tags with usage counts, most used first. */
+  getTags(): Observable<TagCount[]> {
+    return this.http.get<TagCount[]>(`${this.apiUrl}/tags`);
   }
 }

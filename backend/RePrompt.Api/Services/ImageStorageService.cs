@@ -1,9 +1,19 @@
+using SkiaSharp;
+
 namespace RePrompt.Api.Services;
 
-public sealed record ImageSaveResult(bool Success, string? Url, string? Error)
+public sealed record ImageSaveResult(
+    bool Success,
+    string? Url,
+    string? ThumbnailUrl,
+    int? Width,
+    int? Height,
+    string? Error)
 {
-    public static ImageSaveResult Fail(string error) => new(false, null, error);
-    public static ImageSaveResult Ok(string url) => new(true, url, null);
+    public static ImageSaveResult Fail(string error) => new(false, null, null, null, null, error);
+
+    public static ImageSaveResult Ok(string url, string? thumbnailUrl, int? width, int? height) =>
+        new(true, url, thumbnailUrl, width, height, null);
 }
 
 /// <summary>
@@ -13,7 +23,11 @@ public sealed record ImageSaveResult(bool Success, string? Url, string? Error)
 public sealed class ImageStorageService
 {
     public const string RequestPath = "/uploads";
+    public const string ThumbnailRequestPath = "/thumbnails";
     public const long MaxFileSizeBytes = 50L * 1024 * 1024;
+
+    /// <summary>Long edge of a generated thumbnail. Roughly 2x a gallery column on a HiDPI screen.</summary>
+    private const int ThumbnailMaxEdge = 600;
 
     private static readonly string[] AllowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 
@@ -22,6 +36,8 @@ public sealed class ImageStorageService
     private readonly ILogger<ImageStorageService> _logger;
 
     public string UploadsDirectory { get; }
+
+    public string ThumbnailsDirectory { get; }
 
     public ImageStorageService(IWebHostEnvironment env, ILogger<ImageStorageService> logger)
     {
@@ -34,7 +50,10 @@ public sealed class ImageStorageService
             : env.WebRootPath;
 
         UploadsDirectory = Path.GetFullPath(Path.Combine(webRoot, "uploads"));
+        ThumbnailsDirectory = Path.GetFullPath(Path.Combine(webRoot, "thumbnails"));
+
         Directory.CreateDirectory(UploadsDirectory);
+        Directory.CreateDirectory(ThumbnailsDirectory);
     }
 
     public async Task<ImageSaveResult> SaveAsync(IFormFile? file, CancellationToken cancellationToken = default)
@@ -83,31 +102,137 @@ public sealed class ImageStorageService
             return ImageSaveResult.Fail("Failed to store the uploaded image.");
         }
 
-        return ImageSaveResult.Ok($"{RequestPath}/{storedName}");
+        var derived = await CreateThumbnailAsync(storedName, cancellationToken);
+
+        return ImageSaveResult.Ok($"{RequestPath}/{storedName}", derived.ThumbnailUrl, derived.Width, derived.Height);
+    }
+
+    /// <summary>
+    /// Builds the gallery-sized copy and reads the original's dimensions. A failure here is
+    /// not fatal — the image is already stored and callers fall back to the full-size file.
+    /// </summary>
+    public async Task<(string? ThumbnailUrl, int? Width, int? Height)> CreateThumbnailAsync(
+        string storedName,
+        CancellationToken cancellationToken = default)
+    {
+        var sourcePath = Path.Combine(UploadsDirectory, storedName);
+        if (!File.Exists(sourcePath))
+            return (null, null, null);
+
+        var thumbnailName = $"{Path.GetFileNameWithoutExtension(storedName)}.webp";
+        var thumbnailPath = Path.Combine(ThumbnailsDirectory, thumbnailName);
+
+        try
+        {
+            return await Task.Run(() =>
+            {
+                // Animated sources collapse to their first frame; a still thumbnail is the point.
+                using var source = SKBitmap.Decode(sourcePath);
+                if (source is null)
+                {
+                    _logger.LogWarning("Could not decode {StoredName} for thumbnailing.", storedName);
+                    return ((string?)null, (int?)null, (int?)null);
+                }
+
+                var width = source.Width;
+                var height = source.Height;
+
+                // Fit inside the box, preserve aspect ratio, never upscale.
+                var scale = Math.Min(1.0, (double)ThumbnailMaxEdge / Math.Max(width, height));
+                var targetWidth = Math.Max(1, (int)Math.Round(width * scale));
+                var targetHeight = Math.Max(1, (int)Math.Round(height * scale));
+
+                using var resized = source.Resize(
+                    new SKImageInfo(targetWidth, targetHeight),
+                    new SKSamplingOptions(SKCubicResampler.Mitchell));
+
+                if (resized is null)
+                {
+                    _logger.LogWarning("Could not resize {StoredName}.", storedName);
+                    return (null, null, null);
+                }
+
+                using var image = SKImage.FromBitmap(resized);
+                using var data = image.Encode(SKEncodedImageFormat.Webp, 80);
+                using var output = File.Create(thumbnailPath);
+                data.SaveTo(output);
+
+                return ($"{ThumbnailRequestPath}/{thumbnailName}", (int?)width, (int?)height);
+            }, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not create a thumbnail for {StoredName}", storedName);
+            TryDeletePath(thumbnailPath);
+            return (null, null, null);
+        }
+    }
+
+    /// <summary>
+    /// Server-side lookup of an upload's derived data. Callers never accept the thumbnail
+    /// url or dimensions from the client — they are read back from disk here so they cannot
+    /// be forged. Identify only parses the header, it does not decode the pixels.
+    /// </summary>
+    public (string? ThumbnailUrl, int? Width, int? Height) DescribeStoredImage(string? imageUrl)
+    {
+        if (!TryResolveStoredFile(imageUrl, out var imagePath) || !File.Exists(imagePath))
+            return (null, null, null);
+
+        var thumbnailName = $"{Path.GetFileNameWithoutExtension(imagePath)}.webp";
+        var thumbnailUrl = File.Exists(Path.Combine(ThumbnailsDirectory, thumbnailName))
+            ? $"{ThumbnailRequestPath}/{thumbnailName}"
+            : null;
+
+        try
+        {
+            // SKCodec reads the header only; it does not decode the pixels.
+            using var codec = SKCodec.Create(imagePath);
+            return codec is null
+                ? (thumbnailUrl, null, null)
+                : (thumbnailUrl, codec.Info.Width, codec.Info.Height);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not read dimensions of {Path}", imagePath);
+            return (thumbnailUrl, null, null);
+        }
     }
 
     /// <summary>
     /// Maps a stored image URL to an absolute path, refusing anything that is not a plain
     /// file name directly inside the uploads folder.
     /// </summary>
-    public bool TryResolveStoredFile(string? imageUrl, out string fullPath)
+    public bool TryResolveStoredFile(string? imageUrl, out string fullPath) =>
+        TryResolve(imageUrl, RequestPath, UploadsDirectory, AllowedExtensions, out fullPath);
+
+    public bool IsValidImageUrl(string? imageUrl) => TryResolveStoredFile(imageUrl, out _);
+
+    public bool TryResolveThumbnail(string? thumbnailUrl, out string fullPath) =>
+        TryResolve(thumbnailUrl, ThumbnailRequestPath, ThumbnailsDirectory, [".webp"], out fullPath);
+
+    private bool TryResolve(
+        string? url,
+        string requestPath,
+        string directory,
+        string[] allowedExtensions,
+        out string fullPath)
     {
         fullPath = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(imageUrl))
+        if (string.IsNullOrWhiteSpace(url))
             return false;
 
-        const string prefix = RequestPath + "/";
-        if (!imageUrl.StartsWith(prefix, StringComparison.Ordinal))
+        var prefix = requestPath + "/";
+        if (!url.StartsWith(prefix, StringComparison.Ordinal))
             return false;
 
-        var fileName = imageUrl[prefix.Length..];
+        var fileName = url[prefix.Length..];
         if (fileName.Length == 0)
             return false;
 
         // Reject separators, traversal segments and anything the OS considers invalid.
         // Path.Combine would otherwise happily accept "../../x" or an absolute path and
-        // silently discard the uploads directory.
+        // silently discard the target directory.
         if (fileName.Contains('/') || fileName.Contains('\\'))
             return false;
         if (fileName is "." or "..")
@@ -117,29 +242,41 @@ public sealed class ImageStorageService
         if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             return false;
 
-        if (!AllowedExtensions.Contains(Path.GetExtension(fileName), StringComparer.OrdinalIgnoreCase))
+        if (!allowedExtensions.Contains(Path.GetExtension(fileName), StringComparer.OrdinalIgnoreCase))
             return false;
 
-        // Final defence: canonicalize, then confirm the result is still inside uploads.
-        var candidate = Path.GetFullPath(Path.Combine(UploadsDirectory, fileName));
-        if (!candidate.StartsWith(UploadsDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        // Final defence: canonicalize, then confirm the result is still inside the folder.
+        var candidate = Path.GetFullPath(Path.Combine(directory, fileName));
+        if (!candidate.StartsWith(directory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             return false;
 
         fullPath = candidate;
         return true;
     }
 
-    public bool IsValidImageUrl(string? imageUrl) => TryResolveStoredFile(imageUrl, out _);
-
-    public void DeleteIfExists(string? imageUrl)
+    /// <summary>Removes an upload and, when given, its generated thumbnail.</summary>
+    public void DeleteIfExists(string? imageUrl, string? thumbnailUrl = null)
     {
-        if (!TryResolveStoredFile(imageUrl, out var fullPath))
+        if (TryResolveStoredFile(imageUrl, out var imagePath))
+        {
+            TryDeletePath(imagePath);
+        }
+        else
         {
             _logger.LogWarning("Refused to delete image: {ImageUrl} is not a valid uploads path.", imageUrl);
-            return;
         }
 
-        TryDeletePath(fullPath);
+        if (thumbnailUrl is null)
+            return;
+
+        if (TryResolveThumbnail(thumbnailUrl, out var thumbnailPath))
+        {
+            TryDeletePath(thumbnailPath);
+        }
+        else
+        {
+            _logger.LogWarning("Refused to delete thumbnail: {ThumbnailUrl} is not a valid thumbnails path.", thumbnailUrl);
+        }
     }
 
     private void TryDeletePath(string fullPath)
@@ -152,7 +289,7 @@ public sealed class ImageStorageService
         catch (Exception ex)
         {
             // An orphaned file is not worth failing the request over, but it must be visible.
-            _logger.LogWarning(ex, "Failed to delete image file {Path}", fullPath);
+            _logger.LogWarning(ex, "Failed to delete file {Path}", fullPath);
         }
     }
 

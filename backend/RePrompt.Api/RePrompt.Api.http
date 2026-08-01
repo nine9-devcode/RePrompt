@@ -8,6 +8,14 @@ Accept: application/json
 GET {{RePrompt.Api_HostAddress}}/api/prompts?search=cat&category=Portrait&model=sd_xl
 Accept: application/json
 
+### Filter by tags (comma separated, AND semantics)
+GET {{RePrompt.Api_HostAddress}}/api/prompts?tags=cyberpunk,night
+Accept: application/json
+
+### All tags with usage counts
+GET {{RePrompt.Api_HostAddress}}/api/tags
+Accept: application/json
+
 ### Hide NSFW entries server-side (strict mode)
 GET {{RePrompt.Api_HostAddress}}/api/prompts?includeNsfw=false
 Accept: application/json
@@ -36,6 +44,7 @@ Content-Type: application/json
   "seed": "3942611316",
   "category": "Landscape",
   "isNsfw": false,
+  "tags": ["cyberpunk", "night"],
   "images": []
 }
 
@@ -54,11 +63,18 @@ Content-Type: application/json
   "seed": "3942611316",
   "category": "Landscape",
   "isNsfw": false,
+  "tags": ["cyberpunk", "night"],
   "images": []
 }
 
 ### Delete a prompt (also removes its files from disk)
 DELETE {{RePrompt.Api_HostAddress}}/api/prompts/1
+
+### Download a full backup (prompts.json + images/) as a zip
+GET {{RePrompt.Api_HostAddress}}/api/export
+
+### Discard an upload that was never attached to a prompt
+DELETE {{RePrompt.Api_HostAddress}}/api/uploads/REPLACE_WITH_STORED_FILE_NAME.png
 
 ### Delete a single image
 DELETE {{RePrompt.Api_HostAddress}}/api/images/1

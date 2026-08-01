@@ -59,6 +59,7 @@
     [(search)]="search"
     [(category)]="category"
     [(selectedModel)]="selectedModel"
+    [(selectedTags)]="selectedTags"
     (changed)="onFiltersChanged()"
   />
 
@@ -94,6 +95,7 @@
         (recensor)="toggleReveal(prompt.id)"
         (remove)="onDelete($event)"
         (copyText)="copyToClipboard($event)"
+        (tagSelected)="onTagSelected($event)"
       />
     }
   </div>
@@ -115,6 +117,7 @@
     (closed)="closeModal()"
     (reveal)="toggleReveal(prompt.id)"
     (copyText)="copyToClipboard($event)"
+    (tagSelected)="onTagSelected($event)"
   />
 }
 

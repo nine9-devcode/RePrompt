@@ -9,6 +9,8 @@ export interface Prompt {
   seed?: string;
   modelName?: string;
   category: string;
+  /** Free-form labels, always lowercase — the server normalises them. */
+  tags: string[];
   isNsfw?: boolean;
   createdAt?: Date;
   images: PromptImage[];
@@ -17,6 +19,11 @@ export interface Prompt {
 export interface PromptImage {
   id?: number;
   imageUrl: string;
+  /** Gallery-sized copy. Null for images uploaded before thumbnails existed. */
+  thumbnailUrl?: string | null;
+  /** Intrinsic size of the original, used to reserve layout space. */
+  width?: number | null;
+  height?: number | null;
   promptId?: number;
 }
 
@@ -29,4 +36,10 @@ export interface Suggestions {
   models: string[];
   samplers: string[];
   categories: string[];
+  tags: string[];
+}
+
+export interface TagCount {
+  name: string;
+  count: number;
 }

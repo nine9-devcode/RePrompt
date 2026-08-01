@@ -101,6 +101,14 @@
           </div>
 
           <div class="space-y-2">
+            <label for="tag-input" class="flex items-center gap-2 text-[11px] font-bold">
+              <span class="text-purple-400">const</span> <span class="text-blue-400">แท็ก (tags)</span> =
+            </label>
+            <app-tag-input [(tags)]="tags" [suggestions]="suggestions().tags" />
+            <p class="text-[10px] text-[#8B949E]">// ใส่ได้หลายแท็ก ใช้กรองรูปในแกลเลอรีแบบผสมกันได้ (ตัวพิมพ์เล็กอัตโนมัติ)</p>
+          </div>
+
+          <div class="space-y-2">
             <label for="field-positive" class="flex items-center gap-2 text-[11px] font-bold">
               <span class="text-purple-400">const</span> <span class="text-blue-400">พรอมต์หลัก (positive_prompt)</span> = `
             </label>

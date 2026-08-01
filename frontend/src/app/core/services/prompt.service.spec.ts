@@ -49,6 +49,22 @@ describe('PromptService', () => {
     excluded.flush({ totalCount: 0, prompts: [] });
   });
 
+  it('joins tags into a single comma separated param', () => {
+    service.getPrompts({ tags: ['portrait', 'sci-fi'] }).subscribe();
+
+    const request = httpMock.expectOne(req => req.url === `${environment.apiUrl}/prompts`);
+    expect(request.request.params.get('tags')).toBe('portrait,sci-fi');
+    request.flush({ totalCount: 0, prompts: [] });
+  });
+
+  it('omits the tags param when nothing is selected', () => {
+    service.getPrompts({ tags: [] }).subscribe();
+
+    const request = httpMock.expectOne(req => req.url === `${environment.apiUrl}/prompts`);
+    expect(request.request.params.has('tags')).toBeFalse();
+    request.flush({ totalCount: 0, prompts: [] });
+  });
+
   it('posts the upload as multipart form data', () => {
     const file = new File(['x'], 'sample.png', { type: 'image/png' });
     service.uploadImage(file).subscribe();
