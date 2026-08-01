@@ -214,7 +214,17 @@ export class PromptFormComponent implements OnInit {
     image.src = objectUrl;
 
     try {
+      // Loaded on demand so the gallery's bundle does not carry it.
+      //
+      // `ng serve` prints a Vite warning about a dynamic import it "cannot analyze".
+      // That import is inside exifr itself — a fallback for Node-only modules that never
+      // runs in a browser — so it is expected and harmless. It does not appear in
+      // `ng build`. Both of exifr's builds contain it, and importing the deep ESM path
+      // to dodge it costs the package's type declarations, which is not a good trade.
       const exifr = (await import('exifr')).default;
+
+      // Automatic1111 writes its settings into a PNG tEXt chunk keyed "parameters";
+      // other tools put the same string in the JPEG EXIF UserComment field.
       const metadata = await exifr.parse(file, true);
       const rawParams = metadata?.parameters || metadata?.UserComment;
       if (rawParams) {
