@@ -1,6 +1,8 @@
 {
-  "name": "frontend",
-  "version": "0.0.0",
+  "name": "reprompt",
+  "version": "1.0.0",
+  "description": "คลังเก็บรูป AI พร้อมสูตรที่ใช้สร้าง (Stable Diffusion prompt & gallery hub)",
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

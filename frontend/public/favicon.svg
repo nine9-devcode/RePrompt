@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="RePrompt">
+  <title>RePrompt</title>
+  <rect width="32" height="32" rx="7" fill="#1F6FEB" />
+  <!-- Terminal caret: the ">" of a shell prompt, with the cursor underscore in the
+       same green the app uses for a positive prompt. -->
+  <path
+    d="M8.5 10 L14.5 16 L8.5 22"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="3.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <rect x="16.5" y="19.4" width="9" height="3.2" rx="1.6" fill="#7EE787" />
+</svg>

@@ -1,13 +1,28 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
+  let httpMock: HttpTestingController;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([])],
+      // The shell injects HealthService, which polls the API for the footer status.
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    // The health poll fires on construction; drain it so no test leaks a pending request.
+    httpMock
+      .match(req => req.url.endsWith('/health'))
+      .forEach(req => req.flush(null, { status: 0, statusText: '' }));
+    httpMock.verify();
   });
 
   it('should create the app', () => {

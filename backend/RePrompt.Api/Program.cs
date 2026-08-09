@@ -118,6 +118,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 var api = app.MapGroup("/api");
+api.MapHealthEndpoints();
 api.MapPromptEndpoints();
 api.MapUploadEndpoints();
 api.MapBackupEndpoints();

@@ -127,6 +127,7 @@ frontend/src/
 
 | Method | Route | คำอธิบาย |
 | --- | --- | --- |
+| `GET` | `/api/health` | สถานะระบบ + เช็กว่าต่อฐานข้อมูลได้จริง (footer ใช้ตัวนี้) |
 | `GET` | `/api/prompts` | รายการ prompt — `search`, `category`, `model`, `tags`, `includeNsfw`, `limit` (1–100), `offset` |
 | `GET` | `/api/prompts/{id}` | prompt เดียว |
 | `POST` | `/api/prompts` | สร้างใหม่ |

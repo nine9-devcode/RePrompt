@@ -24,245 +24,266 @@
     <p class="text-[#8B949E] text-xs mt-1">// ปรับแต่งการทำงานของแอปพลิเคชัน (Configure application preferences)</p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-    <nav class="space-y-1" aria-label="หมวดการตั้งค่า (settings sections)">
-      <button
-        type="button"
-        aria-current="page"
-        class="w-full text-left px-4 py-2 bg-[#21262D] text-[#F0F6FC] rounded-md text-xs border border-[#30363D]"
-      >
-        ความปลอดภัยและเซนเซอร์ (SECURITY_CENSOR)
-      </button>
-      <button
-        type="button"
-        disabled
-        class="w-full text-left px-4 py-2 text-[#8B949E] rounded-md text-xs opacity-50 cursor-not-allowed"
-      >
-        การแสดงผล (APPEARANCE) - Soon
-      </button>
-      <button
-        type="button"
-        disabled
-        class="w-full text-left px-4 py-2 text-[#8B949E] rounded-md text-xs opacity-50 cursor-not-allowed"
-      >
-        เครือข่าย (NETWORK) - Soon
-      </button>
-    </nav>
+  <div class="space-y-8">
+    <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
+      <h2 class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest">
+        NSFW &amp; Censor Configuration
+      </h2>
 
-    <div class="md:col-span-2 space-y-8">
-      <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
-        <h2
-          class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest"
-        >
-          NSFW &amp; Censor Configuration
-        </h2>
-
-        <div class="p-6 space-y-8">
-          <fieldset class="space-y-4">
-            <legend class="text-sm font-bold text-[#F0F6FC]">รูปแบบการเซนเซอร์ (Censor Style)</legend>
-            <div class="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                (click)="setCensorStyle('blur')"
-                [attr.aria-pressed]="settings.censorStyle() === 'blur'"
-                [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'blur' }"
-                class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
-              >
-                <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Blur</span>
-                <span class="block text-[10px] text-[#8B949E]">// เบลอ (Default)</span>
-              </button>
-              <button
-                type="button"
-                (click)="setCensorStyle('pixel')"
-                [attr.aria-pressed]="settings.censorStyle() === 'pixel'"
-                [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'pixel' }"
-                class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
-              >
-                <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Pixelate</span>
-                <span class="block text-[10px] text-[#8B949E]">// พิกเซล</span>
-              </button>
-              <button
-                type="button"
-                (click)="setCensorStyle('block')"
-                [attr.aria-pressed]="settings.censorStyle() === 'block'"
-                [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'block' }"
-                class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
-              >
-                <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Solid Block</span>
-                <span class="block text-[10px] text-[#8B949E]">// ปิดทึบ</span>
-              </button>
-            </div>
-          </fieldset>
-
-          @if (settings.censorStyle() !== 'block') {
-            <div class="space-y-4">
-              <div class="flex justify-between items-center gap-4">
-                <div>
-                  <label for="blur-amount" class="text-sm font-bold text-[#F0F6FC]">
-                    {{
-                      settings.censorStyle() === 'blur'
-                        ? 'ระดับความเข้มของการเบลอ (Blur Intensity)'
-                        : 'ขนาดของพิกเซล (Pixel Size)'
-                    }}
-                  </label>
-                  <p class="text-[11px] text-[#8B949E] mt-1">
-                    // {{ settings.censorStyle() === 'blur' ? 'กำหนดความเบลอของรูปภาพ' : 'กำหนดขนาดเม็ดพิกเซล (แนะนำ 4-12)' }}
-                  </p>
-                </div>
-                <span class="text-blue-400 font-bold text-sm shrink-0">
-                  {{ settings.blurAmount() }}{{ settings.censorStyle() === 'blur' ? 'px' : '' }}
-                </span>
-              </div>
-
-              <input
-                id="blur-amount"
-                type="range"
-                step="1"
-                [min]="sliderMin()"
-                [max]="sliderMax()"
-                [ngModel]="settings.blurAmount()"
-                (ngModelChange)="onBlurAmountChange($event)"
-                class="w-full h-1.5 bg-[#0D1117] rounded-lg appearance-none cursor-pointer accent-blue-500 border border-[#30363D]"
-              />
-
-              <div class="flex justify-between text-[10px] text-[#8B949E]">
-                <span>{{ sliderMin() }}</span>
-                <span>{{ (sliderMin() + sliderMax()) / 2 }}</span>
-                <span>{{ sliderMax() }}</span>
-              </div>
-            </div>
-          }
-
-          <div class="pt-6 border-t border-[#30363D] space-y-4">
-            <div>
-              <label for="nsfw-keywords" class="text-sm font-bold text-[#F0F6FC]">
-                คำค้นหาสำหรับเซนเซอร์อัตโนมัติ (Auto-Flag Keywords)
-              </label>
-              <p class="text-[11px] text-[#8B949E] mt-1">
-                // ระบุคำที่ต้องการให้ระบบติ๊กช่อง NSFW ให้อัตโนมัติ (คั่นด้วยเครื่องหมายลูกน้ำ)
-              </p>
-            </div>
-
-            <textarea
-              id="nsfw-keywords"
-              rows="3"
-              placeholder="nsfw, nude, gore, blood..."
-              [ngModel]="settings.nsfwKeywords()"
-              (ngModelChange)="onKeywordsChange($event)"
-              class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#7EE787] text-xs focus:border-blue-500 focus-visible:outline-none transition-all resize-y font-mono"
-            ></textarea>
-
-            <p class="text-[10px] text-[#8B949E] tracking-tight leading-relaxed">
-              * ระบบจะตรวจสอบจาก Positive Prompt และ Negative Prompt หากพบคำที่ระบุไว้จะทำการติ๊กถูกที่ช่อง NSFW
-              ให้ทันทีในหน้าเพิ่มข้อมูล
-            </p>
-          </div>
-
-          <div class="pt-6 border-t border-[#30363D]">
-            <h3 class="text-[10px] text-[#8B949E] font-bold uppercase mb-4 tracking-widest">
-              ตัวอย่างการแสดงผล (CENSOR_PREVIEW)
-            </h3>
-            <div
-              class="relative rounded-lg overflow-hidden border border-[#30363D] bg-black aspect-video max-w-sm mx-auto"
-              [style.background-color]="isPreviewBlockedOut() ? '#0D1117' : '#000'"
+      <div class="p-6 space-y-8">
+        <fieldset class="space-y-4">
+          <legend class="text-sm font-bold text-[#F0F6FC]">รูปแบบการเซนเซอร์ (Censor Style)</legend>
+          <div class="grid grid-cols-3 gap-3">
+            <button
+              type="button"
+              (click)="setCensorStyle('blur')"
+              [attr.aria-pressed]="settings.censorStyle() === 'blur'"
+              [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'blur' }"
+              class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
             >
-              @if (!isPreviewBlockedOut()) {
-                <img
-                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"
-                  alt="ตัวอย่างการเซนเซอร์ (censor preview sample)"
-                  [style.filter]="previewFilter()"
-                  class="w-full h-full object-cover transition-all duration-300"
-                />
-              }
+              <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Blur</span>
+              <span class="block text-[10px] text-[#8B949E]">// เบลอ (Default)</span>
+            </button>
+            <button
+              type="button"
+              (click)="setCensorStyle('pixel')"
+              [attr.aria-pressed]="settings.censorStyle() === 'pixel'"
+              [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'pixel' }"
+              class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
+            >
+              <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Pixelate</span>
+              <span class="block text-[10px] text-[#8B949E]">// พิกเซล</span>
+            </button>
+            <button
+              type="button"
+              (click)="setCensorStyle('block')"
+              [attr.aria-pressed]="settings.censorStyle() === 'block'"
+              [ngClass]="{ 'border-blue-500 bg-blue-500/10': settings.censorStyle() === 'block' }"
+              class="p-4 border border-[#30363D] rounded-md text-center transition-all hover:border-[#8B949E]"
+            >
+              <span class="block text-xs font-bold text-[#F0F6FC] mb-1">Solid Block</span>
+              <span class="block text-[10px] text-[#8B949E]">// ปิดทึบ</span>
+            </button>
+          </div>
+        </fieldset>
 
-              @if (isPreviewCensored()) {
-                <app-nsfw-overlay (reveal)="isPreviewCensored.set(false)" />
-              } @else {
-                <button
-                  type="button"
-                  (click)="isPreviewCensored.set(true)"
-                  aria-label="เซ็นเซอร์ตัวอย่างอีกครั้ง (re-censor preview)"
-                  class="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-blue-500 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="w-4 h-4"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                    />
-                  </svg>
-                </button>
-              }
+        @if (settings.censorStyle() !== 'block') {
+          <div class="space-y-4">
+            <div class="flex justify-between items-center gap-4">
+              <div>
+                <label for="blur-amount" class="text-sm font-bold text-[#F0F6FC]">
+                  {{
+                    settings.censorStyle() === 'blur' ? 'ระดับความเข้มของการเบลอ (Blur Intensity)' : 'ขนาดของพิกเซล (Pixel Size)'
+                  }}
+                </label>
+                <p class="text-[11px] text-[#8B949E] mt-1">
+                  // {{ settings.censorStyle() === 'blur' ? 'กำหนดความเบลอของรูปภาพ' : 'กำหนดขนาดเม็ดพิกเซล (แนะนำ 4-12)' }}
+                </p>
+              </div>
+              <span class="text-blue-400 font-bold text-sm shrink-0">
+                {{ settings.blurAmount() }}{{ settings.censorStyle() === 'blur' ? 'px' : '' }}
+              </span>
             </div>
 
-            <p class="text-center text-[10px] text-[#8B949E] mt-3 tracking-tight">
-              {{ isPreviewCensored() ? 'รูปภาพถูกเซ็นเซอร์ (IMAGE_ENCRYPTED)' : 'แสดงรูปภาพต้นฉบับ (SOURCE_REVEALED)' }}
-            </p>
+            <input
+              id="blur-amount"
+              type="range"
+              step="1"
+              [min]="sliderMin()"
+              [max]="sliderMax()"
+              [ngModel]="settings.blurAmount()"
+              (ngModelChange)="onBlurAmountChange($event)"
+              class="w-full h-1.5 bg-[#0D1117] rounded-lg appearance-none cursor-pointer accent-blue-500 border border-[#30363D]"
+            />
+
+            <div class="flex justify-between text-[10px] text-[#8B949E]">
+              <span>{{ sliderMin() }}</span>
+              <span>{{ (sliderMin() + sliderMax()) / 2 }}</span>
+              <span>{{ sliderMax() }}</span>
+            </div>
           </div>
-        </div>
-      </section>
+        }
 
-      <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
-        <h2
-          class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest"
-        >
-          Backup &amp; Export
-        </h2>
-
-        <div class="p-6 space-y-4">
+        <div class="pt-6 border-t border-[#30363D] space-y-4">
           <div>
-            <h3 class="text-sm font-bold text-[#F0F6FC]">ส่งออกข้อมูลทั้งหมด (Export everything)</h3>
+            <label for="nsfw-keywords" class="text-sm font-bold text-[#F0F6FC]">
+              คำค้นหาสำหรับเซนเซอร์อัตโนมัติ (Auto-Flag Keywords)
+            </label>
             <p class="text-[11px] text-[#8B949E] mt-1">
-              // ดาวน์โหลดเป็นไฟล์ .zip ประกอบด้วย prompts.json และรูปภาพทั้งหมดในโฟลเดอร์ images/
+              // ระบุคำที่ต้องการให้ระบบติ๊กช่อง NSFW ให้อัตโนมัติ (คั่นด้วยเครื่องหมายลูกน้ำ)
             </p>
           </div>
 
-          <p class="text-[10px] text-[#8B949E] leading-relaxed">
-            ข้อมูลทั้งหมดอยู่ในไฟล์ SQLite ไฟล์เดียวที่ถูก gitignore ไว้ และการคัดลอกเฉพาะ reprompt.db
-            อาจทำให้ข้อมูลล่าสุดหายเพราะยังค้างอยู่ใน WAL — ใช้ปุ่มนี้สำรองข้อมูลจะปลอดภัยกว่า
+          <textarea
+            id="nsfw-keywords"
+            rows="3"
+            placeholder="nsfw, nude, gore, blood..."
+            [ngModel]="settings.nsfwKeywords()"
+            (ngModelChange)="onKeywordsChange($event)"
+            class="w-full px-4 py-2 bg-[#0D1117] border border-[#30363D] rounded-md text-[#7EE787] text-xs focus:border-blue-500 focus-visible:outline-none transition-all resize-y font-mono"
+          ></textarea>
+
+          <p class="text-[10px] text-[#8B949E] tracking-tight leading-relaxed">
+            * ระบบจะตรวจสอบจาก Positive Prompt และ Negative Prompt หากพบคำที่ระบุไว้จะทำการติ๊กถูกที่ช่อง NSFW
+            ให้ทันทีในหน้าเพิ่มข้อมูล
           </p>
-
-          <a
-            [href]="exportUrl"
-            download
-            class="inline-flex items-center gap-2 px-4 py-2 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-[#C9D1D9] text-xs font-bold rounded-md transition-all"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-4 h-4"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-              />
-            </svg>
-            ดาวน์โหลดไฟล์สำรอง (DOWNLOAD_BACKUP)
-          </a>
         </div>
-      </section>
 
-      <div class="flex justify-end gap-3">
+        <div class="pt-6 border-t border-[#30363D]">
+          <h3 class="text-[10px] text-[#8B949E] font-bold uppercase mb-4 tracking-widest">ตัวอย่างการแสดงผล (CENSOR_PREVIEW)</h3>
+          <div
+            class="relative rounded-lg overflow-hidden border border-[#30363D] bg-black aspect-video max-w-sm mx-auto"
+            [style.background-color]="isPreviewBlockedOut() ? '#0D1117' : '#000'"
+          >
+            @if (!isPreviewBlockedOut()) {
+              <img
+                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"
+                alt="ตัวอย่างการเซนเซอร์ (censor preview sample)"
+                [style.filter]="previewFilter()"
+                class="w-full h-full object-cover transition-all duration-300"
+              />
+            }
+
+            @if (isPreviewCensored()) {
+              <app-nsfw-overlay (reveal)="isPreviewCensored.set(false)" />
+            } @else {
+              <button
+                type="button"
+                (click)="isPreviewCensored.set(true)"
+                aria-label="เซ็นเซอร์ตัวอย่างอีกครั้ง (re-censor preview)"
+                class="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-blue-500 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  class="w-4 h-4"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                  />
+                </svg>
+              </button>
+            }
+          </div>
+
+          <p class="text-center text-[10px] text-[#8B949E] mt-3 tracking-tight">
+            {{ isPreviewCensored() ? 'รูปภาพถูกเซ็นเซอร์ (IMAGE_ENCRYPTED)' : 'แสดงรูปภาพต้นฉบับ (SOURCE_REVEALED)' }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
+      <h2 class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest">
+        Backup &amp; Export
+      </h2>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-[#F0F6FC]">ส่งออกข้อมูลทั้งหมด (Export everything)</h3>
+          <p class="text-[11px] text-[#8B949E] mt-1">
+            // ดาวน์โหลดเป็นไฟล์ .zip ประกอบด้วย prompts.json และรูปภาพทั้งหมดในโฟลเดอร์ images/
+          </p>
+        </div>
+
+        <p class="text-[10px] text-[#8B949E] leading-relaxed">
+          ข้อมูลทั้งหมดอยู่ในไฟล์ SQLite ไฟล์เดียวที่ถูก gitignore ไว้ และการคัดลอกเฉพาะ reprompt.db
+          อาจทำให้ข้อมูลล่าสุดหายเพราะยังค้างอยู่ใน WAL — ใช้ปุ่มนี้สำรองข้อมูลจะปลอดภัยกว่า
+        </p>
+
         <a
-          routerLink="/"
-          class="px-6 py-2 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-[#C9D1D9] text-xs font-bold rounded-md transition-all"
+          [href]="exportUrl"
+          download
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-[#C9D1D9] text-xs font-bold rounded-md transition-all"
         >
-          กลับสู่คลังภาพ (RETURN_TO_GALLERY)
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-4 h-4"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+          ดาวน์โหลดไฟล์สำรอง (DOWNLOAD_BACKUP)
         </a>
       </div>
+    </section>
+
+    <section class="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden shadow-xl">
+      <h2 class="bg-[#0D1117] px-4 py-2 border-b border-[#30363D] text-[10px] text-[#8B949E] font-bold uppercase tracking-widest">
+        ข้อมูลระบบ (About)
+      </h2>
+
+      <div class="p-6">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div class="bg-[#0D1117] p-3 rounded-md border border-[#30363D]">
+            <dt class="text-[10px] text-[#8B949E] uppercase tracking-tighter mb-1">เวอร์ชัน (version)</dt>
+            <dd class="text-[#C9D1D9] font-mono">{{ appVersion }}</dd>
+          </div>
+
+          <div class="bg-[#0D1117] p-3 rounded-md border border-[#30363D]">
+            <dt class="text-[10px] text-[#8B949E] uppercase tracking-tighter mb-1">สถานะ API (status)</dt>
+            <dd class="font-mono flex items-center gap-1.5">
+              <span
+                class="w-1.5 h-1.5 rounded-full shrink-0"
+                [class]="statusDotClass()"
+                [class.animate-pulse]="health.status() === 'checking'"
+                aria-hidden="true"
+              ></span>
+              <span [class]="statusColour()" aria-live="polite">{{ statusLabel() }}</span>
+            </dd>
+          </div>
+
+          <div class="bg-[#0D1117] p-3 rounded-md border border-[#30363D]">
+            <dt class="text-[10px] text-[#8B949E] uppercase tracking-tighter mb-1">ปลายทาง API (endpoint)</dt>
+            <dd class="text-blue-400 font-mono break-all">{{ apiUrl }}</dd>
+          </div>
+
+          <div class="bg-[#0D1117] p-3 rounded-md border border-[#30363D]">
+            <dt class="text-[10px] text-[#8B949E] uppercase tracking-tighter mb-1">ฐานข้อมูล (database)</dt>
+            <dd class="text-[#C9D1D9] font-mono">{{ health.database() ?? 'ยังไม่ทราบ (unknown)' }}</dd>
+          </div>
+        </dl>
+
+        <div class="mt-4 flex flex-wrap items-center gap-4">
+          <a
+            [href]="repoUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4" aria-hidden="true">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              />
+            </svg>
+            ซอร์สโค้ดบน GitHub
+          </a>
+          <span class="text-[10px] text-[#8B949E]"> // เผยแพร่ภายใต้สัญญาอนุญาต MIT </span>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex justify-end gap-3">
+      <a
+        routerLink="/"
+        class="px-6 py-2 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-[#C9D1D9] text-xs font-bold rounded-md transition-all"
+      >
+        กลับสู่คลังภาพ (RETURN_TO_GALLERY)
+      </a>
     </div>
   </div>
 </div>
